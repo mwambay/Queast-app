@@ -4,6 +4,7 @@ import './index.css'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import AdminLayout from './components/AdminLayout'
 import Login from './pages/login'
+import Dashboard from './pages/dashboard'
 import GererRestaurants from './pages/gererRestaurants'
 import GererMenus from './pages/gererMenus'
 import GererUtilisateurs from './pages/gererUtilisateurs'
@@ -15,6 +16,8 @@ const router = createBrowserRouter([
     path: '/admin',
     element: <AdminLayout />,
     children: [
+      { index: true, element: <Dashboard /> }, // Route par défaut /admin
+      { path: 'dashboard', element: <Dashboard /> },
       { path: 'restaurants', element: <GererRestaurants /> },
       { path: 'menus', element: <GererMenus /> },
       { path: 'commandes', element: <SuiviCommandes /> },

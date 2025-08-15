@@ -1,4 +1,5 @@
 import '../components/admin.css'
+import { MdAdd } from 'react-icons/md'
 
 export default function GererRestaurants() {
   return (
@@ -6,7 +7,9 @@ export default function GererRestaurants() {
       <h1>Gestion des Restaurants</h1>
       <div className="card">
         <p>Liste des restaurants et leurs informations</p>
-        <button className="btn">Ajouter un restaurant</button>
+        <button className="btn" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <MdAdd /> Ajouter un restaurant
+        </button>
       </div>
     </div>
   )
