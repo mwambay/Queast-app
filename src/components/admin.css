@@ -7,7 +7,7 @@
 
 .sidebar {
   width: 260px;
-  background: linear-gradient(135deg, #0b74da, #0958a3);
+  background: linear-gradient(135deg, #495864, #3f6b7d);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -29,21 +29,43 @@
   gap: 4px;
 }
 
-.sidebar a {
-  color: rgba(255,255,255,0.9);
+.nav-link {
+  color: rgba(255,255,255,0.8);
   padding: 12px 14px;
   border-radius: 8px;
   text-decoration: none;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   transition: all 0.2s;
   font-weight: 500;
+  position: relative;
 }
 
-.sidebar a:hover,
-.sidebar a.active {
-  background: rgba(255,255,255,0.15);
-  color: white;
+.nav-link:hover {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.95);
   transform: translateX(2px);
+}
+
+.nav-link.active {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  font-weight: 600;
+  transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  background: #3ba0ff;
+  border-radius: 0 2px 2px 0;
 }
 
 .content {
@@ -63,8 +85,10 @@
   transition: all 0.15s;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   text-decoration: none;
+  text-align: center;
 }
 
 .btn:hover {

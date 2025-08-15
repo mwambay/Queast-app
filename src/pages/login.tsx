@@ -86,19 +86,6 @@ export default function Login() {
             {loading ? 'Connexion en cours...' : 'Se connecter'}
           </button>
         </form>
-
-        <div style={{ 
-          marginTop: 24, 
-          padding: 16, 
-          background: '#f0f9ff', 
-          border: '1px solid #bae6fd', 
-          borderRadius: 8,
-          fontSize: '0.85em'
-        }}>
-          <strong>Compte de test :</strong><br />
-          Email: admin@queast.com<br />
-          Mot de passe: admin123
-        </div>
       </div>
     </div>
   )

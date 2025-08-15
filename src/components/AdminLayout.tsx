@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { MdDashboard, MdRestaurant, MdRestaurantMenu, MdShoppingCart, MdPeople, MdLogout } from 'react-icons/md'
 import './admin.css'
@@ -6,6 +6,15 @@ import './admin.css'
 export default function AdminLayout() {
   const [user, setUser] = useState<any>(null)
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Fonction pour vérifier si le lien est actif
+  const isActiveLink = (path: string) => {
+    if (path === '/admin/dashboard') {
+      return location.pathname === '/admin' || location.pathname === '/admin/dashboard'
+    }
+    return location.pathname === path
+  }
 
   useEffect(() => {
     // Vérification de l'authentification
@@ -39,19 +48,34 @@ export default function AdminLayout() {
       <aside className="sidebar">
         <div className="brand">Queast Admin</div>
         <nav>
-          <Link to="/admin/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Link 
+            to="/admin/dashboard" 
+            className={isActiveLink('/admin/dashboard') ? 'nav-link active' : 'nav-link'}
+          >
             <MdDashboard /> Dashboard
           </Link>
-          <Link to="/admin/restaurants" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Link 
+            to="/admin/restaurants" 
+            className={isActiveLink('/admin/restaurants') ? 'nav-link active' : 'nav-link'}
+          >
             <MdRestaurant /> Restaurants
           </Link>
-          <Link to="/admin/menus" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Link 
+            to="/admin/menus" 
+            className={isActiveLink('/admin/menus') ? 'nav-link active' : 'nav-link'}
+          >
             <MdRestaurantMenu /> Plats
           </Link>
-          <Link to="/admin/commandes" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Link 
+            to="/admin/commandes" 
+            className={isActiveLink('/admin/commandes') ? 'nav-link active' : 'nav-link'}
+          >
             <MdShoppingCart /> Commandes
           </Link>
-          <Link to="/admin/utilisateurs" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Link 
+            to="/admin/utilisateurs" 
+            className={isActiveLink('/admin/utilisateurs') ? 'nav-link active' : 'nav-link'}
+          >
             <MdPeople /> Utilisateurs
           </Link>
         </nav>
