@@ -1,0 +1,10 @@
+.admin-shell{display:flex;min-height:100vh;background:#f7f9fc;color:#1f2937}
+.sidebar{width:240px;background:#0b74da;color:#fff;display:flex;flex-direction:column;padding:16px 12px}
+.brand{font-weight:700;margin-bottom:16px}
+.sidebar a{color:#fff;padding:8px 10px;border-radius:8px;text-decoration:none;display:block;margin-bottom:6px}
+.sidebar a:hover{background:rgba(255,255,255,0.12)}
+.content{flex:1;padding:24px}
+.btn{background:#3ba0ff;border:1px solid #2f8fe8;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer}
+.btn:hover{filter:brightness(0.98)}
+.input{border:1px solid #d1d5db;border-radius:8px;padding:8px 10px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px}
