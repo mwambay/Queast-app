@@ -1,135 +1,80 @@
 import '../components/admin.css'
 import { MdRefresh, MdAssignment, MdVisibility, MdEdit, MdQrCode, MdDeliveryDining, MdRestaurant, MdPerson, MdAccessTime, MdCheckCircle, MdCancel, MdHourglassEmpty, MdLocalShipping } from 'react-icons/md'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getAllCommandes, updateCommandeStatus, type CommandeDetailed, type CommandeStatus } from '../api/Commandes'
+import { getAllUsers } from '../api/Utilisateurs'
 
-interface Commande {
-  id: number
-  client_id: number
-  livreur_id: number | null
-  restaurant_id: number
-  status: 'en_attente' | 'en_cours' | 'livrée' | 'annulée'
-  qr_code: string
-  created_at: string
-  updated_at: string
-}
+// Types de statut mappés pour l'interface utilisateur  
+type UIStatus = 'pending' | 'preparing' | 'ready' | 'in_delivery' | 'delivered' | 'cancelled'
 
 interface User {
   id: number
   name: string
   email: string
   role: 'client' | 'livreur' | 'admin'
+  phone: string
 }
 
-interface Restaurant {
-  id: number
-  name: string
-  location: string
+// Fonction de mappage des statuts API vers UI
+const mapStatusToUI = (status: CommandeStatus): UIStatus => {
+  return status as UIStatus // Les statuts sont identiques maintenant
 }
 
-// Données de test pour les utilisateurs (clients et livreurs)
-const mockUsers: User[] = [
-  { id: 1, name: "Marie Diop", email: "marie.diop@email.com", role: "client" },
-  { id: 2, name: "Amadou Ba", email: "amadou.ba@email.com", role: "livreur" },
-  { id: 3, name: "Fatou Sall", email: "fatou.sall@email.com", role: "client" },
-  { id: 4, name: "Ousmane Ndiaye", email: "ousmane.ndiaye@email.com", role: "livreur" },
-  { id: 5, name: "Aïssatou Sy", email: "aissatou.sy@email.com", role: "client" },
-  { id: 6, name: "Modou Fall", email: "modou.fall@email.com", role: "livreur" },
-  { id: 7, name: "Ndeye Thiam", email: "ndeye.thiam@email.com", role: "client" },
-  { id: 8, name: "Cheikh Diallo", email: "cheikh.diallo@email.com", role: "livreur" }
-]
-
-// Données de test pour les restaurants
-const mockRestaurants: Restaurant[] = [
-  { id: 1, name: "Pizza Palace", location: "123 Rue de la Pizza, Dakar" },
-  { id: 2, name: "Burger House", location: "456 Avenue des Burgers, Dakar" },
-  { id: 3, name: "Sushi Time", location: "789 Boulevard du Sushi, Dakar" },
-  { id: 4, name: "Café Central", location: "321 Place du Café, Dakar" },
-  { id: 5, name: "Taco Libre", location: "654 Rue du Mexique, Dakar" },
-  { id: 6, name: "Le Gourmet", location: "987 Avenue de la Gastronomie, Dakar" }
-]
-
-// Données de test pour les commandes
-const mockCommandes: Commande[] = [
-  {
-    id: 1,
-    client_id: 1,
-    livreur_id: null,
-    restaurant_id: 1,
-    status: 'en_attente',
-    qr_code: 'QR001234567890',
-    created_at: '2024-08-16T10:30:00Z',
-    updated_at: '2024-08-16T10:30:00Z'
-  },
-  {
-    id: 2,
-    client_id: 3,
-    livreur_id: 2,
-    restaurant_id: 2,
-    status: 'en_cours',
-    qr_code: 'QR001234567891',
-    created_at: '2024-08-16T09:15:00Z',
-    updated_at: '2024-08-16T10:45:00Z'
-  },
-  {
-    id: 3,
-    client_id: 5,
-    livreur_id: 4,
-    restaurant_id: 3,
-    status: 'livrée',
-    qr_code: 'QR001234567892',
-    created_at: '2024-08-16T08:00:00Z',
-    updated_at: '2024-08-16T09:30:00Z'
-  },
-  {
-    id: 4,
-    client_id: 7,
-    livreur_id: null,
-    restaurant_id: 4,
-    status: 'en_attente',
-    qr_code: 'QR001234567893',
-    created_at: '2024-08-16T11:00:00Z',
-    updated_at: '2024-08-16T11:00:00Z'
-  },
-  {
-    id: 5,
-    client_id: 1,
-    livreur_id: 6,
-    restaurant_id: 5,
-    status: 'en_cours',
-    qr_code: 'QR001234567894',
-    created_at: '2024-08-16T10:00:00Z',
-    updated_at: '2024-08-16T11:15:00Z'
-  },
-  {
-    id: 6,
-    client_id: 3,
-    livreur_id: null,
-    restaurant_id: 6,
-    status: 'annulée',
-    qr_code: 'QR001234567895',
-    created_at: '2024-08-15T16:30:00Z',
-    updated_at: '2024-08-15T17:00:00Z'
-  }
-]
+const mapUIToApiStatus = (status: UIStatus): CommandeStatus => {
+  return status as CommandeStatus // Les statuts sont identiques maintenant
+}
 
 export default function SuiviCommandes() {
-  const [commandes, setCommandes] = useState<Commande[]>(mockCommandes)
-  const [users] = useState<User[]>(mockUsers)
-  const [restaurants] = useState<Restaurant[]>(mockRestaurants)
-  const [selectedStatus, setSelectedStatus] = useState<'all' | 'en_attente' | 'en_cours' | 'livrée' | 'annulée'>('all')
-  const [viewingCommande, setViewingCommande] = useState<Commande | null>(null)
-  const [assigningCommande, setAssigningCommande] = useState<Commande | null>(null)
+  const [commandes, setCommandes] = useState<CommandeDetailed[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedStatus, setSelectedStatus] = useState<'all' | UIStatus>('all')
+  const [viewingCommande, setViewingCommande] = useState<CommandeDetailed | null>(null)
+  const [assigningCommande, setAssigningCommande] = useState<CommandeDetailed | null>(null)
   const [selectedLivreur, setSelectedLivreur] = useState<string>('')
 
-  const livreurs = users.filter(u => u.role === 'livreur')
-  const clients = users.filter(u => u.role === 'client')
+  // Charger les données au montage du composant
+  useEffect(() => {
+    loadData()
+  }, [])
 
-  const getUser = (userId: number) => users.find(u => u.id === userId)
-  const getRestaurant = (restaurantId: number) => restaurants.find(r => r.id === restaurantId)
+  const loadData = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const [commandesResponse, usersResponse] = await Promise.all([
+        getAllCommandes(),
+        getAllUsers()
+      ])
+      
+      // L'API retourne un objet avec data, success, total - on extrait le tableau data
+      const commandesData = Array.isArray(commandesResponse) 
+        ? commandesResponse 
+        : (commandesResponse as any)?.data || []
+      
+      const usersData = Array.isArray(usersResponse) 
+        ? usersResponse 
+        : (usersResponse as any)?.data || []
+      
+      setCommandes(commandesData)
+      setUsers(usersData)
+      
+      console.log('Commandes chargées:', commandesData)
+      console.log('Utilisateurs chargés:', usersData)
+    } catch (err) {
+      setError('Erreur lors du chargement des données')
+      console.error('Erreur:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const livreurs = Array.isArray(users) ? users.filter(u => u.role === 'livreur') : []
 
   const filteredCommandes = selectedStatus === 'all' 
-    ? commandes 
-    : commandes.filter(c => c.status === selectedStatus)
+    ? (Array.isArray(commandes) ? commandes : [])
+    : (Array.isArray(commandes) ? commandes.filter(c => mapStatusToUI(c.status) === selectedStatus) : [])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -141,80 +86,117 @@ export default function SuiviCommandes() {
     })
   }
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: CommandeStatus) => {
     switch(status) {
-      case 'en_attente': return <MdHourglassEmpty />
-      case 'en_cours': return <MdLocalShipping />
-      case 'livrée': return <MdCheckCircle />
-      case 'annulée': return <MdCancel />
+      case 'pending': return <MdHourglassEmpty />
+      case 'preparing': return <MdRestaurant />
+      case 'ready': return <MdCheckCircle />
+      case 'in_delivery': return <MdLocalShipping />
+      case 'delivered': return <MdCheckCircle />
+      case 'cancelled': return <MdCancel />
       default: return <MdHourglassEmpty />
     }
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: CommandeStatus) => {
     switch(status) {
-      case 'en_attente': return { bg: '#fef3c7', color: '#92400e', border: '#f59e0b' }
-      case 'en_cours': return { bg: '#dbeafe', color: '#1e40af', border: '#3b82f6' }
-      case 'livrée': return { bg: '#dcfce7', color: '#166534', border: '#16a34a' }
-      case 'annulée': return { bg: '#fee2e2', color: '#dc2626', border: '#ef4444' }
+      case 'pending': return { bg: '#fef3c7', color: '#92400e', border: '#f59e0b' }
+      case 'preparing': return { bg: '#fef3c7', color: '#92400e', border: '#f59e0b' }
+      case 'ready': return { bg: '#dbeafe', color: '#1e40af', border: '#3b82f6' }
+      case 'in_delivery': return { bg: '#dbeafe', color: '#1e40af', border: '#3b82f6' }
+      case 'delivered': return { bg: '#dcfce7', color: '#166534', border: '#16a34a' }
+      case 'cancelled': return { bg: '#fee2e2', color: '#dc2626', border: '#ef4444' }
       default: return { bg: '#f3f4f6', color: '#374151', border: '#9ca3af' }
     }
   }
 
-  const getStatusLabel = (status: string) => {
+  const getStatusLabel = (status: CommandeStatus) => {
     switch(status) {
-      case 'en_attente': return 'En attente'
-      case 'en_cours': return 'En cours'
-      case 'livrée': return 'Livrée'
-      case 'annulée': return 'Annulée'
+      case 'pending': return 'En attente'
+      case 'preparing': return 'En préparation'
+      case 'ready': return 'Prête'
+      case 'in_delivery': return 'En livraison'
+      case 'delivered': return 'Livrée'
+      case 'cancelled': return 'Annulée'
       default: return status
     }
   }
 
-  const handleAssignLivreur = () => {
+  const handleAssignLivreur = async () => {
     if (assigningCommande && selectedLivreur) {
-      const updatedCommandes = commandes.map(c =>
-        c.id === assigningCommande.id
-          ? { 
-              ...c, 
-              livreur_id: parseInt(selectedLivreur),
-              status: 'en_cours' as const,
-              updated_at: new Date().toISOString()
-            }
-          : c
-      )
-      setCommandes(updatedCommandes)
-      setAssigningCommande(null)
-      setSelectedLivreur('')
+      try {
+        await updateCommandeStatus(assigningCommande.id, 'in_delivery')
+        await loadData() // Recharger les données
+        setAssigningCommande(null)
+        setSelectedLivreur('')
+      } catch (err) {
+        alert('Erreur lors de l\'assignation du livreur')
+        console.error(err)
+      }
     }
   }
 
-  const handleUpdateStatus = (commandeId: number, newStatus: 'en_attente' | 'en_cours' | 'livrée' | 'annulée') => {
-    const updatedCommandes = commandes.map(c =>
-      c.id === commandeId
-        ? { 
-            ...c, 
-            status: newStatus,
-            updated_at: new Date().toISOString(),
-            // Si on annule, retirer le livreur
-            ...(newStatus === 'annulée' && { livreur_id: null })
-          }
-        : c
-    )
-    setCommandes(updatedCommandes)
+  const handleUpdateStatus = async (commandeId: number, newStatus: CommandeStatus) => {
+    try {
+      await updateCommandeStatus(commandeId, newStatus)
+      await loadData() // Recharger les données
+    } catch (err) {
+      alert('Erreur lors de la mise à jour du statut')
+      console.error(err)
+    }
   }
 
   const getCommandeStats = () => {
+    // Vérifier que commandes est bien un tableau
+    if (!Array.isArray(commandes)) {
+      return {
+        total: 0,
+        pending: 0,
+        preparing: 0,
+        ready: 0,
+        in_delivery: 0,
+        delivered: 0,
+        cancelled: 0
+      }
+    }
+    
     return {
       total: commandes.length,
-      en_attente: commandes.filter(c => c.status === 'en_attente').length,
-      en_cours: commandes.filter(c => c.status === 'en_cours').length,
-      livree: commandes.filter(c => c.status === 'livrée').length,
-      annulee: commandes.filter(c => c.status === 'annulée').length
+      pending: commandes.filter(c => c.status === 'pending').length,
+      preparing: commandes.filter(c => c.status === 'preparing').length,
+      ready: commandes.filter(c => c.status === 'ready').length,
+      in_delivery: commandes.filter(c => c.status === 'in_delivery').length,
+      delivered: commandes.filter(c => c.status === 'delivered').length,
+      cancelled: commandes.filter(c => c.status === 'cancelled').length
     }
   }
 
   const stats = getCommandeStats()
+
+  // Affichage du loader
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+        <div style={{ fontSize: '2em', marginBottom: 16 }}>⏳</div>
+        <h3>Chargement des commandes...</h3>
+        <p style={{ color: '#666' }}>Veuillez patienter</p>
+      </div>
+    )
+  }
+
+  // Affichage d'erreur
+  if (error) {
+    return (
+      <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+        <div style={{ fontSize: '2em', marginBottom: 16, color: '#dc2626' }}>❌</div>
+        <h3 style={{ color: '#dc2626' }}>Erreur de chargement</h3>
+        <p style={{ color: '#666', marginBottom: 16 }}>{error}</p>
+        <button className="btn" onClick={loadData}>
+          Réessayer
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -222,12 +204,12 @@ export default function SuiviCommandes() {
         <div>
           <h1 style={{ margin: 0 }}>Suivi des Commandes</h1>
           <p style={{ color: '#666', margin: '4px 0 0 0' }}>
-            {filteredCommandes.length} commandes • {stats.en_attente} en attente • {stats.en_cours} en cours
+            {filteredCommandes.length} commandes • {stats.pending} en attente • {stats.in_delivery} en livraison
           </p>
         </div>
         <button 
           className="btn" 
-          onClick={() => window.location.reload()}
+          onClick={loadData}
           style={{ display: 'flex', alignItems: 'center', gap: 8 }}
         >
           <MdRefresh /> Rafraîchir
@@ -258,11 +240,11 @@ export default function SuiviCommandes() {
               Toutes ({stats.total})
             </button>
             <button
-              onClick={() => setSelectedStatus('en_attente')}
+              onClick={() => setSelectedStatus('pending')}
               style={{
-                background: selectedStatus === 'en_attente' ? '#fef3c7' : '#f3f4f6',
-                color: selectedStatus === 'en_attente' ? '#92400e' : '#374151',
-                border: '1px solid ' + (selectedStatus === 'en_attente' ? '#f59e0b' : '#d1d5db'),
+                background: selectedStatus === 'pending' ? '#fef3c7' : '#f3f4f6',
+                color: selectedStatus === 'pending' ? '#92400e' : '#374151',
+                border: '1px solid ' + (selectedStatus === 'pending' ? '#f59e0b' : '#d1d5db'),
                 padding: '6px 12px',
                 borderRadius: 16,
                 fontSize: '0.85em',
@@ -273,14 +255,14 @@ export default function SuiviCommandes() {
                 gap: 4
               }}
             >
-              <MdHourglassEmpty /> En attente ({stats.en_attente})
+              <MdHourglassEmpty /> En attente ({stats.pending})
             </button>
             <button
-              onClick={() => setSelectedStatus('en_cours')}
+              onClick={() => setSelectedStatus('preparing')}
               style={{
-                background: selectedStatus === 'en_cours' ? '#dbeafe' : '#f3f4f6',
-                color: selectedStatus === 'en_cours' ? '#1e40af' : '#374151',
-                border: '1px solid ' + (selectedStatus === 'en_cours' ? '#3b82f6' : '#d1d5db'),
+                background: selectedStatus === 'preparing' ? '#fef3c7' : '#f3f4f6',
+                color: selectedStatus === 'preparing' ? '#92400e' : '#374151',
+                border: '1px solid ' + (selectedStatus === 'preparing' ? '#f59e0b' : '#d1d5db'),
                 padding: '6px 12px',
                 borderRadius: 16,
                 fontSize: '0.85em',
@@ -291,14 +273,14 @@ export default function SuiviCommandes() {
                 gap: 4
               }}
             >
-              <MdLocalShipping /> En cours ({stats.en_cours})
+              <MdRestaurant /> En préparation ({stats.preparing})
             </button>
             <button
-              onClick={() => setSelectedStatus('livrée')}
+              onClick={() => setSelectedStatus('ready')}
               style={{
-                background: selectedStatus === 'livrée' ? '#dcfce7' : '#f3f4f6',
-                color: selectedStatus === 'livrée' ? '#166534' : '#374151',
-                border: '1px solid ' + (selectedStatus === 'livrée' ? '#16a34a' : '#d1d5db'),
+                background: selectedStatus === 'ready' ? '#dbeafe' : '#f3f4f6',
+                color: selectedStatus === 'ready' ? '#1e40af' : '#374151',
+                border: '1px solid ' + (selectedStatus === 'ready' ? '#3b82f6' : '#d1d5db'),
                 padding: '6px 12px',
                 borderRadius: 16,
                 fontSize: '0.85em',
@@ -309,14 +291,14 @@ export default function SuiviCommandes() {
                 gap: 4
               }}
             >
-              <MdCheckCircle /> Livrées ({stats.livree})
+              <MdCheckCircle /> Prête ({stats.ready})
             </button>
             <button
-              onClick={() => setSelectedStatus('annulée')}
+              onClick={() => setSelectedStatus('in_delivery')}
               style={{
-                background: selectedStatus === 'annulée' ? '#fee2e2' : '#f3f4f6',
-                color: selectedStatus === 'annulée' ? '#dc2626' : '#374151',
-                border: '1px solid ' + (selectedStatus === 'annulée' ? '#ef4444' : '#d1d5db'),
+                background: selectedStatus === 'in_delivery' ? '#dbeafe' : '#f3f4f6',
+                color: selectedStatus === 'in_delivery' ? '#1e40af' : '#374151',
+                border: '1px solid ' + (selectedStatus === 'in_delivery' ? '#3b82f6' : '#d1d5db'),
                 padding: '6px 12px',
                 borderRadius: 16,
                 fontSize: '0.85em',
@@ -327,7 +309,43 @@ export default function SuiviCommandes() {
                 gap: 4
               }}
             >
-              <MdCancel /> Annulées ({stats.annulee})
+              <MdLocalShipping /> En livraison ({stats.in_delivery})
+            </button>
+            <button
+              onClick={() => setSelectedStatus('delivered')}
+              style={{
+                background: selectedStatus === 'delivered' ? '#dcfce7' : '#f3f4f6',
+                color: selectedStatus === 'delivered' ? '#166534' : '#374151',
+                border: '1px solid ' + (selectedStatus === 'delivered' ? '#16a34a' : '#d1d5db'),
+                padding: '6px 12px',
+                borderRadius: 16,
+                fontSize: '0.85em',
+                fontWeight: 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4
+              }}
+            >
+              <MdCheckCircle /> Livrées ({stats.delivered})
+            </button>
+            <button
+              onClick={() => setSelectedStatus('cancelled')}
+              style={{
+                background: selectedStatus === 'cancelled' ? '#fee2e2' : '#f3f4f6',
+                color: selectedStatus === 'cancelled' ? '#dc2626' : '#374151',
+                border: '1px solid ' + (selectedStatus === 'cancelled' ? '#ef4444' : '#d1d5db'),
+                padding: '6px 12px',
+                borderRadius: 16,
+                fontSize: '0.85em',
+                fontWeight: 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4
+              }}
+            >
+              <MdCancel /> Annulées ({stats.cancelled})
             </button>
           </div>
         </div>
@@ -357,7 +375,7 @@ export default function SuiviCommandes() {
             <div className="modal-body">
               <div style={{ marginBottom: 16 }}>
                 <p style={{ color: '#666', margin: '0 0 16px 0' }}>
-                  Commande #{assigningCommande.id} - {getRestaurant(assigningCommande.restaurant_id)?.name}
+                  Commande #{assigningCommande.id} - {assigningCommande.restaurant_name}
                 </p>
                 <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
                   Sélectionner un livreur :
@@ -453,7 +471,7 @@ export default function SuiviCommandes() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <MdPerson style={{ color: '#666' }} />
                       <span style={{ fontWeight: 600, color: '#1e293b' }}>
-                        {getUser(viewingCommande.client_id)?.name || 'Client inconnu'}
+                        {viewingCommande.client_name}
                       </span>
                     </div>
                   </div>
@@ -462,7 +480,7 @@ export default function SuiviCommandes() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <MdRestaurant style={{ color: '#666' }} />
                       <span style={{ fontWeight: 600, color: '#1e293b' }}>
-                        {getRestaurant(viewingCommande.restaurant_id)?.name || 'Restaurant inconnu'}
+                        {viewingCommande.restaurant_name}
                       </span>
                     </div>
                   </div>
@@ -471,10 +489,7 @@ export default function SuiviCommandes() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <MdDeliveryDining style={{ color: '#666' }} />
                       <span style={{ fontWeight: 600, color: '#1e293b' }}>
-                        {viewingCommande.livreur_id 
-                          ? getUser(viewingCommande.livreur_id)?.name || 'Livreur inconnu'
-                          : 'Non assigné'
-                        }
+                        {viewingCommande.delivery_person_name || 'Non assigné'}
                       </span>
                     </div>
                   </div>
@@ -527,7 +542,7 @@ export default function SuiviCommandes() {
               >
                 Fermer
               </button>
-              {!viewingCommande.livreur_id && viewingCommande.status === 'en_attente' && (
+              {!viewingCommande.delivery_person_id && viewingCommande.status === 'pending' && (
                 <button 
                   className="btn"
                   onClick={() => {
@@ -574,7 +589,7 @@ export default function SuiviCommandes() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <MdPerson style={{ color: '#666', fontSize: '1.1em' }} />
                       <span style={{ fontSize: '0.9em' }}>
-                        {getUser(commande.client_id)?.name || 'Client inconnu'}
+                        {commande.client_name}
                       </span>
                     </div>
                   </td>
@@ -582,16 +597,16 @@ export default function SuiviCommandes() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <MdRestaurant style={{ color: '#666', fontSize: '1.1em' }} />
                       <span style={{ fontSize: '0.9em' }}>
-                        {getRestaurant(commande.restaurant_id)?.name || 'Restaurant inconnu'}
+                        {commande.restaurant_name}
                       </span>
                     </div>
                   </td>
                   <td style={{ padding: '16px 8px' }}>
-                    {commande.livreur_id ? (
+                    {commande.delivery_person_name ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <MdDeliveryDining style={{ color: '#059669', fontSize: '1.1em' }} />
                         <span style={{ fontSize: '0.9em', color: '#059669' }}>
-                          {getUser(commande.livreur_id)?.name || 'Livreur inconnu'}
+                          {commande.delivery_person_name}
                         </span>
                       </div>
                     ) : (
@@ -604,7 +619,7 @@ export default function SuiviCommandes() {
                   <td style={{ padding: '16px 8px', textAlign: 'center' }}>
                     <select
                       value={commande.status}
-                      onChange={(e) => handleUpdateStatus(commande.id, e.target.value as any)}
+                      onChange={(e) => handleUpdateStatus(commande.id, e.target.value as CommandeStatus)}
                       style={{
                         ...getStatusColor(commande.status),
                         background: getStatusColor(commande.status).bg,
@@ -617,10 +632,12 @@ export default function SuiviCommandes() {
                         cursor: 'pointer'
                       }}
                     >
-                      <option value="en_attente">En attente</option>
-                      <option value="en_cours">En cours</option>
-                      <option value="livrée">Livrée</option>
-                      <option value="annulée">Annulée</option>
+                      <option value="pending">En attente</option>
+                      <option value="preparing">En préparation</option>
+                      <option value="ready">Prête</option>
+                      <option value="in_delivery">En livraison</option>
+                      <option value="delivered">Livrée</option>
+                      <option value="cancelled">Annulée</option>
                     </select>
                   </td>
                   <td style={{ padding: '16px 8px', textAlign: 'center', fontSize: '0.9em', color: '#666' }}>
@@ -644,7 +661,7 @@ export default function SuiviCommandes() {
                       >
                         <MdVisibility />
                       </button>
-                      {!commande.livreur_id && commande.status === 'en_attente' && (
+                      {!commande.delivery_person_id && commande.status === 'pending' && (
                         <button
                           onClick={() => setAssigningCommande(commande)}
                           style={{
@@ -681,7 +698,7 @@ export default function SuiviCommandes() {
             <p>
               {selectedStatus === 'all' 
                 ? 'Aucune commande disponible pour le moment.' 
-                : `Aucune commande avec le statut "${getStatusLabel(selectedStatus)}" trouvée.`}
+                : `Aucune commande avec le statut trouvée.`}
             </p>
           </div>
         )}

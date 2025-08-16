@@ -18,6 +18,7 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<Respon
   const url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
   try {
     const res = await fetch(url, {
+      credentials: 'include', // Inclure les cookies pour les sessions
       headers: {
         'Content-Type': 'application/json',
         ...(init?.headers || {}),

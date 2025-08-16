@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../components/admin.css'
+import { AuthAPI, type LoginRequest } from '../api/Auth'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -14,25 +15,37 @@ export default function Login() {
     setLoading(true)
     setError('')
 
-    // Simulation d'authentification admin
-    setTimeout(() => {
-      if (email === 'admin@queast.com' && password === 'admin123') {
-        // Stockage de la session
-        localStorage.setItem('queast_admin_token', 'mock_admin_token_' + Date.now())
-        localStorage.setItem('queast_admin_user', JSON.stringify({
-          id: 1,
-          email: email,
-          role: 'admin',
-          name: 'Administrateur'
-        }))
+    try {
+      // Appel à l'API réelle
+      const credentials: LoginRequest = { email, password }
+      const { data, error } = await AuthAPI.login(credentials)
+      
+      if (error) {
+        setError(error)
+        setLoading(false)
+        return
+      }
+      
+      if (data) {
+        // Vérifier que l'utilisateur est admin
+        if (data.user.role !== 'admin') {
+          setError('Accès réservé aux administrateurs')
+          setLoading(false)
+          return
+        }
+        
+        // Sauvegarder la session
+        AuthAPI.saveSession(data, { email, name: 'Administrateur' })
         
         // Redirection vers le dashboard
         navigate('/admin/dashboard')
-      } else {
-        setError('Email ou mot de passe incorrect')
       }
+    } catch (err) {
+      console.error('Erreur de connexion:', err)
+      setError('Erreur de connexion au serveur')
+    } finally {
       setLoading(false)
-    }, 800)
+    }
   }
 
   return (
@@ -41,6 +54,21 @@ export default function Login() {
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <h1 style={{ color: '#3ba0ff', marginBottom: 8 }}>Queast Admin</h1>
           <p style={{ color: '#666', margin: 0 }}>Connexion à l'interface d'administration</p>
+        </div>
+
+        {/* Info compte de test */}
+        <div style={{
+          background: '#f0f9ff',
+          border: '1px solid #7dd3fc',
+          color: '#0369a1',
+          padding: '12px 16px',
+          borderRadius: 8,
+          marginBottom: 16,
+          fontSize: '0.85em'
+        }}>
+          <strong>Compte de test :</strong><br />
+          Email: admin@queast.com<br />
+          Mot de passe: password
         </div>
         
         {error && (
@@ -77,7 +105,7 @@ export default function Login() {
               type="password" 
               value={password} 
               onChange={e => setPassword(e.target.value)} 
-              placeholder="admin123"
+              placeholder="password"
               required 
               style={{ width: '100%' }}
             />
