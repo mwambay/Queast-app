@@ -4,26 +4,32 @@ import { get, post, put, apiFetch } from '../lib/api'
 export interface Restaurant {
   id: number
   name: string
-  image: string | null
-  description: string | null
-  location: string | null
-  created_at: string
+  address: string
+  phone: string
+  image_url: string
+  description?: string
+  is_active: boolean
+  created_at?: string
 }
 
-// Interface pour la création d'un restaurant (sans id et created_at)
+// Interface pour la création d'un restaurant (sans id)
 export interface CreateRestaurantData {
   name: string
-  image?: string
+  address: string
+  phone: string
   description?: string
-  location?: string
+  image_url?: string
+  is_active?: boolean
 }
 
 // Interface pour la mise à jour d'un restaurant
 export interface UpdateRestaurantData {
   name?: string
-  image?: string
+  address?: string
+  phone?: string
   description?: string
-  location?: string
+  image_url?: string
+  is_active?: boolean
 }
 
 /**
@@ -32,7 +38,8 @@ export interface UpdateRestaurantData {
  */
 export async function getAllRestaurants(): Promise<Restaurant[]> {
   try {
-    return await get<Restaurant[]>('/restaurants')
+    const response = await get<{restaurants: Restaurant[]}>('/restaurants')
+    return response.restaurants || []
   } catch (error) {
     console.error('Erreur lors de la récupération des restaurants:', error)
     throw new Error('Impossible de récupérer la liste des restaurants')
@@ -41,11 +48,11 @@ export async function getAllRestaurants(): Promise<Restaurant[]> {
 
 /**
  * Récupère un restaurant par son ID
- * Endpoint: GET /restaurants/:id
+ * Endpoint: GET /restaurant?id=X
  */
 export async function getRestaurantById(id: number): Promise<Restaurant> {
   try {
-    return await get<Restaurant>(`/restaurants/${id}`)
+    return await get<Restaurant>(`/restaurant?id=${id}`)
   } catch (error) {
     console.error(`Erreur lors de la récupération du restaurant ${id}:`, error)
     throw new Error(`Impossible de récupérer le restaurant avec l'ID ${id}`)
@@ -67,11 +74,11 @@ export async function createRestaurant(restaurantData: CreateRestaurantData): Pr
 
 /**
  * Met à jour un restaurant existant
- * Endpoint: PUT /restaurants/:id
+ * Endpoint: PUT /restaurant?id=X
  */
 export async function updateRestaurant(id: number, restaurantData: UpdateRestaurantData): Promise<Restaurant> {
   try {
-    return await put<Restaurant>(`/restaurants/${id}`, restaurantData)
+    return await put<Restaurant>(`/restaurant?id=${id}`, restaurantData)
   } catch (error) {
     console.error(`Erreur lors de la mise à jour du restaurant ${id}:`, error)
     throw new Error(`Impossible de mettre à jour le restaurant avec l'ID ${id}`)
@@ -80,11 +87,11 @@ export async function updateRestaurant(id: number, restaurantData: UpdateRestaur
 
 /**
  * Supprime un restaurant
- * Endpoint: DELETE /restaurants/:id
+ * Endpoint: DELETE /restaurant?id=X
  */
 export async function deleteRestaurant(id: number): Promise<void> {
   try {
-    await apiFetch(`/restaurants/${id}`, {
+    await apiFetch(`/restaurant?id=${id}`, {
       method: 'DELETE'
     })
   } catch (error) {
@@ -94,12 +101,26 @@ export async function deleteRestaurant(id: number): Promise<void> {
 }
 
 /**
- * Récupère les plats d'un restaurant
- * Endpoint: GET /restaurants/:id/plats
+ * Interface pour les plats du menu
  */
-export async function getRestaurantPlats(restaurantId: number): Promise<any[]> {
+export interface MenuItem {
+  id: number
+  name: string
+  description?: string
+  price: number
+  category?: string
+  image_url: string
+  is_available: boolean
+}
+
+/**
+ * Récupère les plats d'un restaurant
+ * Endpoint: GET /restaurants/plats?id=X
+ */
+export async function getRestaurantPlats(restaurantId: number): Promise<MenuItem[]> {
   try {
-    return await get<any[]>(`/restaurants/${restaurantId}/plats`)
+    const response = await get<{menu_items: MenuItem[]}>(`/restaurants/plats?id=${restaurantId}`)
+    return response.menu_items || []
   } catch (error) {
     console.error(`Erreur lors de la récupération des plats du restaurant ${restaurantId}:`, error)
     throw new Error(`Impossible de récupérer les plats du restaurant avec l'ID ${restaurantId}`)

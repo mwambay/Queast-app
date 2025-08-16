@@ -1,81 +1,50 @@
 import '../components/admin.css'
-import { MdAdd, MdEdit, MdDelete, MdLocationOn, MdRestaurant, MdVisibility } from 'react-icons/md'
-import { useState } from 'react'
-
-interface Restaurant {
-  id: number
-  name: string
-  image: string
-  description: string
-  location: string
-  created_at: string
-}
-
-// Données de test pour les restaurants
-const mockRestaurants: Restaurant[] = [
-  {
-    id: 1,
-    name: "Pizza Palace",
-    image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400",
-    description: "Authentiques pizzas italiennes avec des ingrédients frais et une pâte faite maison.",
-    location: "123 Rue de la Pizza, Dakar",
-    created_at: "2024-01-15T10:30:00Z"
-  },
-  {
-    id: 2,
-    name: "Burger House",
-    image: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400",
-    description: "Burgers gourmets avec des viandes de qualité et des frites croustillantes.",
-    location: "456 Avenue des Burgers, Dakar",
-    created_at: "2024-02-20T14:15:00Z"
-  },
-  {
-    id: 3,
-    name: "Sushi Time",
-    image: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400",
-    description: "Sushis frais préparés par des chefs expérimentés avec du poisson de première qualité.",
-    location: "789 Boulevard du Sushi, Dakar",
-    created_at: "2024-03-10T16:45:00Z"
-  },
-  {
-    id: 4,
-    name: "Café Central",
-    image: "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=400",
-    description: "Café cosy avec pâtisseries maison et boissons chaudes de qualité.",
-    location: "321 Place du Café, Dakar",
-    created_at: "2024-01-30T09:00:00Z"
-  },
-  {
-    id: 5,
-    name: "Taco Libre",
-    image: "https://images.unsplash.com/photo-1565299585323-38174c4a6a1f?w=400",
-    description: "Cuisine mexicaine authentique avec des tacos, burritos et nachos savoureux.",
-    location: "654 Rue du Mexique, Dakar",
-    created_at: "2024-03-25T12:20:00Z"
-  },
-  {
-    id: 6,
-    name: "Le Gourmet",
-    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400",
-    description: "Restaurant gastronomique proposant une cuisine française raffinée.",
-    location: "987 Avenue de la Gastronomie, Dakar",
-    created_at: "2024-02-05T18:30:00Z"
-  }
-]
+import { MdAdd, MdEdit, MdDelete, MdLocationOn, MdRestaurant, MdVisibility, MdPhone } from 'react-icons/md'
+import { useState, useEffect } from 'react'
+import { RestaurantAPI } from '../api/Restaurants'
+import type { Restaurant, CreateRestaurantData, UpdateRestaurantData } from '../api/Restaurants'
 
 export default function GererRestaurants() {
-  const [restaurants, setRestaurants] = useState<Restaurant[]>(mockRestaurants)
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null)
   const [viewingRestaurant, setViewingRestaurant] = useState<Restaurant | null>(null)
-  const [newRestaurant, setNewRestaurant] = useState({
+  const [submitting, setSubmitting] = useState(false)
+  const [newRestaurant, setNewRestaurant] = useState<CreateRestaurantData>({
     name: '',
-    image: '',
+    address: '',
+    phone: '',
     description: '',
-    location: ''
+    image_url: ''
   })
 
-  const formatDate = (dateString: string) => {
+  // Charger les restaurants au montage du composant
+  useEffect(() => {
+    loadRestaurants()
+  }, [])
+
+  const loadRestaurants = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const { data, error } = await RestaurantAPI.getAll()
+      if (error) {
+        setError(error)
+      } else if (data) {
+        setRestaurants(data)
+      }
+    } catch (err) {
+      setError('Erreur lors du chargement des restaurants')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A'
     return new Date(dateString).toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
@@ -83,19 +52,24 @@ export default function GererRestaurants() {
     })
   }
 
-
-
-  const handleAddRestaurant = () => {
-    if (newRestaurant.name && newRestaurant.location) {
-      const restaurant: Restaurant = {
-        id: Math.max(...restaurants.map(r => r.id)) + 1,
-        ...newRestaurant,
-        created_at: new Date().toISOString(),
-        image: newRestaurant.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400'
+  const handleAddRestaurant = async () => {
+    if (newRestaurant.name && newRestaurant.address && newRestaurant.phone) {
+      setSubmitting(true)
+      try {
+        const { data, error } = await RestaurantAPI.create(newRestaurant)
+        if (error) {
+          alert('Erreur lors de la création du restaurant: ' + error)
+        } else if (data) {
+          setRestaurants([...restaurants, data])
+          setNewRestaurant({ name: '', address: '', phone: '', description: '', image_url: '' })
+          setShowAddForm(false)
+        }
+      } catch (err) {
+        alert('Erreur lors de la création du restaurant')
+        console.error(err)
+      } finally {
+        setSubmitting(false)
       }
-      setRestaurants([...restaurants, restaurant])
-      setNewRestaurant({ name: '', image: '', description: '', location: '' })
-      setShowAddForm(false)
     }
   }
 
@@ -103,31 +77,84 @@ export default function GererRestaurants() {
     setEditingRestaurant(restaurant)
     setNewRestaurant({
       name: restaurant.name,
-      image: restaurant.image,
-      description: restaurant.description,
-      location: restaurant.location
+      address: restaurant.address,
+      phone: restaurant.phone,
+      description: restaurant.description || '',
+      image_url: restaurant.image_url || ''
     })
     setShowAddForm(true)
   }
 
-  const handleSaveEdit = () => {
-    if (editingRestaurant && newRestaurant.name && newRestaurant.location) {
-      const updatedRestaurants = restaurants.map(r => 
-        r.id === editingRestaurant.id 
-          ? { ...r, ...newRestaurant }
-          : r
-      )
-      setRestaurants(updatedRestaurants)
-      setEditingRestaurant(null)
-      setNewRestaurant({ name: '', image: '', description: '', location: '' })
-      setShowAddForm(false)
+  const handleSaveEdit = async () => {
+    if (editingRestaurant && newRestaurant.name && newRestaurant.address && newRestaurant.phone) {
+      setSubmitting(true)
+      try {
+        const updateData: UpdateRestaurantData = {
+          name: newRestaurant.name,
+          address: newRestaurant.address,
+          phone: newRestaurant.phone,
+          description: newRestaurant.description,
+          image_url: newRestaurant.image_url
+        }
+
+        const { data, error } = await RestaurantAPI.update(editingRestaurant.id, updateData)
+        
+        if (error) {
+          alert('Erreur lors de la mise à jour du restaurant: ' + error)
+        } else if (data) {
+          setRestaurants(restaurants.map(r => r.id === editingRestaurant.id ? data : r))
+          setEditingRestaurant(null)
+          setNewRestaurant({ name: '', address: '', phone: '', description: '', image_url: '' })
+          setShowAddForm(false)
+        }
+      } catch (err) {
+        alert('Erreur lors de la mise à jour du restaurant')
+        console.error(err)
+      } finally {
+        setSubmitting(false)
+      }
     }
   }
 
-  const handleDeleteRestaurant = (id: number) => {
+  const handleDeleteRestaurant = async (id: number) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce restaurant ?')) {
-      setRestaurants(restaurants.filter(r => r.id !== id))
+      try {
+        const { error } = await RestaurantAPI.delete(id)
+        if (error) {
+          alert('Erreur lors de la suppression du restaurant: ' + error)
+        } else {
+          setRestaurants(restaurants.filter(r => r.id !== id))
+        }
+      } catch (err) {
+        alert('Erreur lors de la suppression du restaurant')
+        console.error(err)
+      }
     }
+  }
+
+  // Afficher l'état de chargement
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+        <div style={{ fontSize: '2em', marginBottom: 16 }}>⏳</div>
+        <h3>Chargement des restaurants...</h3>
+        <p style={{ color: '#666' }}>Veuillez patienter</p>
+      </div>
+    )
+  }
+
+  // Afficher l'erreur si elle existe
+  if (error) {
+    return (
+      <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+        <div style={{ fontSize: '2em', marginBottom: 16, color: '#dc2626' }}>❌</div>
+        <h3 style={{ color: '#dc2626' }}>Erreur de chargement</h3>
+        <p style={{ color: '#666', marginBottom: 16 }}>{error}</p>
+        <button className="btn" onClick={loadRestaurants}>
+          Réessayer
+        </button>
+      </div>
+    )
   }
 
 
@@ -156,7 +183,7 @@ export default function GererRestaurants() {
           if (e.target === e.currentTarget) {
             setShowAddForm(false)
             setEditingRestaurant(null)
-            setNewRestaurant({ name: '', image: '', description: '', location: '' })
+            setNewRestaurant({ name: '', address: '', phone: '', description: '', image_url: '' })
           }
         }}>
           <div className="modal-content">
@@ -169,7 +196,7 @@ export default function GererRestaurants() {
                 onClick={() => {
                   setShowAddForm(false)
                   setEditingRestaurant(null)
-                  setNewRestaurant({ name: '', image: '', description: '', location: '' })
+                  setNewRestaurant({ name: '', address: '', phone: '', description: '', image_url: '' })
                 }}
               >
                 ×
@@ -197,8 +224,8 @@ export default function GererRestaurants() {
                   <input
                     className="input"
                     type="url"
-                    value={newRestaurant.image}
-                    onChange={e => setNewRestaurant({...newRestaurant, image: e.target.value})}
+                    value={newRestaurant.image_url || ''}
+                    onChange={e => setNewRestaurant({...newRestaurant, image_url: e.target.value})}
                     placeholder="https://..."
                     style={{ width: '100%' }}
                   />
@@ -223,9 +250,22 @@ export default function GererRestaurants() {
                   <input
                     className="input"
                     type="text"
-                    value={newRestaurant.location}
-                    onChange={e => setNewRestaurant({...newRestaurant, location: e.target.value})}
+                    value={newRestaurant.address}
+                    onChange={e => setNewRestaurant({...newRestaurant, address: e.target.value})}
                     placeholder="123 Rue de la Pizza, Dakar"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>
+                    Téléphone *
+                  </label>
+                  <input
+                    className="input"
+                    type="tel"
+                    value={newRestaurant.phone}
+                    onChange={e => setNewRestaurant({...newRestaurant, phone: e.target.value})}
+                    placeholder="+221 77 123 45 67"
                     style={{ width: '100%' }}
                   />
                 </div>
@@ -237,7 +277,7 @@ export default function GererRestaurants() {
                 onClick={() => {
                   setShowAddForm(false)
                   setEditingRestaurant(null)
-                  setNewRestaurant({ name: '', image: '', description: '', location: '' })
+                  setNewRestaurant({ name: '', address: '', phone: '', description: '', image_url: '' })
                 }}
               >
                 Annuler
@@ -245,7 +285,7 @@ export default function GererRestaurants() {
               <button 
                 className="btn"
                 onClick={editingRestaurant ? handleSaveEdit : handleAddRestaurant}
-                disabled={!newRestaurant.name || !newRestaurant.location}
+                disabled={!newRestaurant.name || !newRestaurant.address || !newRestaurant.phone || submitting}
               >
                 {editingRestaurant ? 'Sauvegarder' : 'Ajouter'}
               </button>
@@ -276,7 +316,7 @@ export default function GererRestaurants() {
                 {/* Image du restaurant */}
                 <div style={{ textAlign: 'center' }}>
                   <img 
-                    src={viewingRestaurant.image} 
+                    src={viewingRestaurant.image_url} 
                     alt={viewingRestaurant.name}
                     style={{ 
                       width: '100%', 
@@ -296,7 +336,7 @@ export default function GererRestaurants() {
                   </h4>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#666', marginBottom: 16 }}>
                     <MdLocationOn style={{ fontSize: '1.1em' }} />
-                    <span>{viewingRestaurant.location}</span>
+                    <span>{viewingRestaurant.address}</span>
                   </div>
                 </div>
 
@@ -377,7 +417,7 @@ export default function GererRestaurants() {
                   <td style={{ padding: '16px 8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <img 
-                        src={restaurant.image} 
+                        src={restaurant.image_url} 
                         alt={restaurant.name}
                         style={{ 
                           width: 50, 
@@ -405,7 +445,7 @@ export default function GererRestaurants() {
                   <td style={{ padding: '16px 8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <MdLocationOn style={{ color: '#666', fontSize: '1.1em' }} />
-                      <span style={{ fontSize: '0.9em', color: '#666' }}>{restaurant.location}</span>
+                      <span style={{ fontSize: '0.9em', color: '#666' }}>{restaurant.address}</span>
                     </div>
                   </td>
                   <td style={{ padding: '16px 8px', textAlign: 'center', fontSize: '0.9em', color: '#666' }}>
