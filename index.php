@@ -42,6 +42,7 @@ $routes = [
     'POST' => [
         '/auth/register' => 'api/auth/register.php',
         '/auth/login' => 'api/auth/login.php',
+        '/users' => function() { require 'api/users/index.php'; }, // Ajout d'utilisateurs
         '/commandes' => function() { checkAuth(); require 'api/commandes/index.php'; },
         '/livraison/valider' => function() { checkAuth(); require 'api/livraison/valider.php'; }
     ],
