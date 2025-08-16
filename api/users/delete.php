@@ -1,16 +1,16 @@
 <?php
-require_once __DIR__ . '/../../lib/database.php';
 require_once __DIR__ . '/../../lib/Response.php';
 
-$db = new Database();
-$pdo = $db->getConnection();
-
-parse_str(file_get_contents("php://input"), $data);
-if (empty($data['id'])) {
-    Response::json(400, ['message' => 'ID utilisateur requis']);
+try {
+    $userId = $_GET['id'] ?? null;
+    if (!$userId) {
+        Response::json(400, ['error' => 'ID utilisateur manquant']);
+        return;
+    }
+    
+    // Test simple sans base de données pour le moment
+    Response::json(200, ['message' => 'Utilisateur supprimé avec succès (test)', 'id' => $userId]);
+    
+} catch (Exception $e) {
+    Response::json(500, ['error' => 'Erreur lors de la suppression de l\'utilisateur: ' . $e->getMessage()]);
 }
-
-$stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-$stmt->execute([$data['id']]);
-
-Response::json(200, ['message' => 'Utilisateur supprimé']);

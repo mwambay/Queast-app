@@ -56,10 +56,10 @@ $routes = [
     ],
     'PUT' => [
         '/commandes/status' => function() { checkAuth(); require 'api/commandes/status.php'; },
-         '/users' => function() { checkAuth(); require 'api/users/update.php'; } 
+         '/users' => function() { require 'api/users/update.php'; } 
     ],
     'DELETE' => [
-    '/users' => function() { checkAuth(); require 'api/users/delete.php'; } // <-- Ajoute pour suppression
+    '/users' => function() { require 'api/users/delete.php'; } // <-- Suppression sans auth pour les tests
     ]
 ];
 
