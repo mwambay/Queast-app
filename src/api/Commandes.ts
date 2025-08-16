@@ -79,6 +79,6 @@ export async function createCommande(payload: CreateCommandePayload): Promise<Co
 }
 
 // Mettre à jour le statut d'une commande
-export async function updateCommandeStatus(orderId: number, status: CommandeStatus, reason?: string): Promise<Commande> {
-  return put<Commande>('/commandes/status', { order_id: orderId, status, reason });
+export async function updateCommandeStatus(orderId: number, status: CommandeStatus, reason?: string, deliveryPersonId?: number): Promise<Commande> {
+  return put<Commande>('/commandes/status', { order_id: orderId, status, reason, delivery_person_id: deliveryPersonId });
 }

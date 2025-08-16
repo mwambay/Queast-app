@@ -125,7 +125,7 @@ export default function SuiviCommandes() {
   const handleAssignLivreur = async () => {
     if (assigningCommande && selectedLivreur) {
       try {
-        await updateCommandeStatus(assigningCommande.id, 'in_delivery')
+        await updateCommandeStatus(assigningCommande.id, 'in_delivery', undefined, parseInt(selectedLivreur))
         await loadData() // Recharger les données
         setAssigningCommande(null)
         setSelectedLivreur('')
