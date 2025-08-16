@@ -76,7 +76,7 @@ export async function createUser(userData: CreateUserData): Promise<User> {
  */
 export async function updateUser(id: number, userData: UpdateUserData): Promise<User> {
   try {
-    return await put<User>(`/users/${id}`, userData)
+    return await put<User>(`/users?id=${id}`, userData)
   } catch (error) {
     console.error(`Erreur lors de la mise à jour de l'utilisateur ${id}:`, error)
     throw new Error(`Impossible de mettre à jour l'utilisateur avec l'ID ${id}`)
@@ -89,7 +89,7 @@ export async function updateUser(id: number, userData: UpdateUserData): Promise<
  */
 export async function deleteUser(id: number): Promise<void> {
   try {
-    await apiFetch(`/users/${id}`, {
+    await apiFetch(`/users?id=${id}`, {
       method: 'DELETE'
     })
   } catch (error) {
