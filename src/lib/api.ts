@@ -1,7 +1,10 @@
 // Léger client API: wrap fetch et émet un événement global en cas d'erreur réseau
 // Utilise VITE_API_BASE_URL si défini
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL ?? '';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL ?? 'http://ADRESSE_IP_DE_VOTRE_SERVEUR:8000';
+
+console.log('API_BASE_URL configuré:', API_BASE_URL);
+console.log('VITE_API_BASE_URL depuis env:', (import.meta as any).env?.VITE_API_BASE_URL);
 
 export type ServerUnreachableDetail = {
   url: string;

@@ -1,96 +1,41 @@
 import '../components/admin.css'
-import { MdPersonAdd, MdEdit, MdDelete, MdVisibility, MdPerson, MdEmail, MdBadge, MdAdminPanelSettings, MdDeliveryDining, MdPeople } from 'react-icons/md'
-import { useState } from 'react'
-
-interface User {
-  id: number
-  name: string
-  email: string
-  password_hash: string
-  role: 'client' | 'livreur' | 'admin'
-  created_at: string
-}
-
-// Données de test pour les utilisateurs
-const mockUsers: User[] = [
-  {
-    id: 1,
-    name: "Admin Principal",
-    email: "admin@queast.com",
-    password_hash: "$2b$10$...", // Hash fictif
-    role: "admin",
-    created_at: "2024-01-01T08:00:00Z"
-  },
-  {
-    id: 2,
-    name: "Marie Diop",
-    email: "marie.diop@email.com",
-    password_hash: "$2b$10$...",
-    role: "client",
-    created_at: "2024-02-15T10:30:00Z"
-  },
-  {
-    id: 3,
-    name: "Amadou Ba",
-    email: "amadou.ba@email.com",
-    password_hash: "$2b$10$...",
-    role: "livreur",
-    created_at: "2024-02-20T14:15:00Z"
-  },
-  {
-    id: 4,
-    name: "Fatou Sall",
-    email: "fatou.sall@email.com",
-    password_hash: "$2b$10$...",
-    role: "client",
-    created_at: "2024-03-01T16:45:00Z"
-  },
-  {
-    id: 5,
-    name: "Ousmane Ndiaye",
-    email: "ousmane.ndiaye@email.com",
-    password_hash: "$2b$10$...",
-    role: "livreur",
-    created_at: "2024-03-10T09:20:00Z"
-  },
-  {
-    id: 6,
-    name: "Aïssatou Sy",
-    email: "aissatou.sy@email.com",
-    password_hash: "$2b$10$...",
-    role: "client",
-    created_at: "2024-03-15T11:00:00Z"
-  },
-  {
-    id: 7,
-    name: "Modou Fall",
-    email: "modou.fall@email.com",
-    password_hash: "$2b$10$...",
-    role: "livreur",
-    created_at: "2024-03-20T13:30:00Z"
-  },
-  {
-    id: 8,
-    name: "Ndeye Thiam",
-    email: "ndeye.thiam@email.com",
-    password_hash: "$2b$10$...",
-    role: "client",
-    created_at: "2024-03-25T15:45:00Z"
-  }
-]
+import { MdPersonAdd, MdEdit, MdDelete, MdVisibility, MdPeople, MdPerson, MdDeliveryDining, MdAdminPanelSettings, MdEmail } from 'react-icons/md'
+import { useState, useEffect } from 'react'
+import { UserAPI, type User, type CreateUserData, type UpdateUserData } from '../api/Utilisateurs'
 
 export default function GererUtilisateurs() {
-  const [users, setUsers] = useState<User[]>(mockUsers)
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [viewingUser, setViewingUser] = useState<User | null>(null)
   const [selectedRole, setSelectedRole] = useState<'all' | 'client' | 'livreur' | 'admin'>('all')
+  const [submitting, setSubmitting] = useState(false)
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'client' as 'client' | 'livreur' | 'admin'
+    role: 'client' as 'client' | 'livreur' | 'admin',
+    phone: ''
   })
+
+  // Charger les utilisateurs au montage du composant
+  useEffect(() => {
+    loadUsers()
+  }, [])
+
+  const loadUsers = async () => {
+    setLoading(true)
+    setError(null)
+    const { data, error } = await UserAPI.getAll()
+    if (error) {
+      setError(error)
+    } else if (data) {
+      setUsers(data)
+    }
+    setLoading(false)
+  }
 
   const filteredUsers = selectedRole === 'all' 
     ? users 
@@ -133,19 +78,25 @@ export default function GererUtilisateurs() {
     }
   }
 
-  const handleAddUser = () => {
-    if (newUser.name && newUser.email && newUser.password) {
-      const user: User = {
-        id: Math.max(...users.map(u => u.id)) + 1,
+  const handleAddUser = async () => {
+    if (newUser.name && newUser.email && newUser.password && newUser.phone) {
+      setSubmitting(true)
+      const { data, error } = await UserAPI.create({
         name: newUser.name,
         email: newUser.email,
-        password_hash: `$2b$10$...${newUser.password.slice(-8)}`, // Simulation d'un hash
+        password: newUser.password,
         role: newUser.role,
-        created_at: new Date().toISOString()
+        phone: newUser.phone
+      })
+      
+      if (error) {
+        alert('Erreur lors de la création de l\'utilisateur: ' + error)
+      } else if (data) {
+        setUsers([...users, data])
+        setNewUser({ name: '', email: '', password: '', role: 'client', phone: '' })
+        setShowAddForm(false)
       }
-      setUsers([...users, user])
-      setNewUser({ name: '', email: '', password: '', role: 'client' })
-      setShowAddForm(false)
+      setSubmitting(false)
     }
   }
 
@@ -155,40 +106,55 @@ export default function GererUtilisateurs() {
       name: user.name,
       email: user.email,
       password: '', // Ne pas pré-remplir le mot de passe
-      role: user.role
+      role: user.role,
+      phone: user.phone
     })
     setShowAddForm(true)
   }
 
-  const handleSaveEdit = () => {
-    if (editingUser && newUser.name && newUser.email) {
-      const updatedUsers = users.map(u => 
-        u.id === editingUser.id 
-          ? { 
-              ...u, 
-              name: newUser.name,
-              email: newUser.email,
-              role: newUser.role,
-              // Mettre à jour le mot de passe seulement s'il est fourni
-              ...(newUser.password && { password_hash: `$2b$10$...${newUser.password.slice(-8)}` })
-            }
-          : u
-      )
-      setUsers(updatedUsers)
-      setEditingUser(null)
-      setNewUser({ name: '', email: '', password: '', role: 'client' })
-      setShowAddForm(false)
+  const handleSaveEdit = async () => {
+    if (editingUser && newUser.name && newUser.email && newUser.phone) {
+      setSubmitting(true)
+      const updateData: UpdateUserData = {
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        phone: newUser.phone
+      }
+      
+      // Inclure le mot de passe seulement s'il est fourni
+      if (newUser.password) {
+        updateData.password = newUser.password
+      }
+
+      const { data, error } = await UserAPI.update(editingUser.id, updateData)
+      
+      if (error) {
+        alert('Erreur lors de la mise à jour de l\'utilisateur: ' + error)
+      } else if (data) {
+        setUsers(users.map(u => u.id === editingUser.id ? data : u))
+        setEditingUser(null)
+        setNewUser({ name: '', email: '', password: '', role: 'client', phone: '' })
+        setShowAddForm(false)
+      }
+      setSubmitting(false)
     }
   }
 
-  const handleDeleteUser = (id: number) => {
+  const handleDeleteUser = async (id: number) => {
     const userToDelete = users.find(u => u.id === id)
     if (userToDelete?.role === 'admin' && users.filter(u => u.role === 'admin').length === 1) {
       alert('Impossible de supprimer le dernier administrateur !')
       return
     }
+    
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
-      setUsers(users.filter(u => u.id !== id))
+      const { error } = await UserAPI.delete(id)
+      if (error) {
+        alert('Erreur lors de la suppression de l\'utilisateur: ' + error)
+      } else {
+        setUsers(users.filter(u => u.id !== id))
+      }
     }
   }
 
@@ -202,6 +168,31 @@ export default function GererUtilisateurs() {
   }
 
   const stats = getUserStats()
+
+  // Afficher l'état de chargement
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+        <div style={{ fontSize: '2em', marginBottom: 16 }}>⏳</div>
+        <h3>Chargement des utilisateurs...</h3>
+        <p style={{ color: '#666' }}>Veuillez patienter</p>
+      </div>
+    )
+  }
+
+  // Afficher l'erreur si elle existe
+  if (error) {
+    return (
+      <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+        <div style={{ fontSize: '2em', marginBottom: 16, color: '#dc2626' }}>❌</div>
+        <h3 style={{ color: '#dc2626' }}>Erreur de chargement</h3>
+        <p style={{ color: '#666', marginBottom: 16 }}>{error}</p>
+        <button className="btn" onClick={loadUsers}>
+          Réessayer
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -308,7 +299,7 @@ export default function GererUtilisateurs() {
           if (e.target === e.currentTarget) {
             setShowAddForm(false)
             setEditingUser(null)
-            setNewUser({ name: '', email: '', password: '', role: 'client' })
+            setNewUser({ name: '', email: '', password: '', role: 'client', phone: '' })
           }
         }}>
           <div className="modal-content">
@@ -321,7 +312,7 @@ export default function GererUtilisateurs() {
                 onClick={() => {
                   setShowAddForm(false)
                   setEditingUser(null)
-                  setNewUser({ name: '', email: '', password: '', role: 'client' })
+                  setNewUser({ name: '', email: '', password: '', role: 'client', phone: '' })
                 }}
               >
                 ×
@@ -352,6 +343,19 @@ export default function GererUtilisateurs() {
                     value={newUser.email}
                     onChange={e => setNewUser({...newUser, email: e.target.value})}
                     placeholder="marie.diop@email.com"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>
+                    Téléphone *
+                  </label>
+                  <input
+                    className="input"
+                    type="tel"
+                    value={newUser.phone}
+                    onChange={e => setNewUser({...newUser, phone: e.target.value})}
+                    placeholder="0123456789"
                     style={{ width: '100%' }}
                   />
                 </div>
@@ -391,17 +395,18 @@ export default function GererUtilisateurs() {
                 onClick={() => {
                   setShowAddForm(false)
                   setEditingUser(null)
-                  setNewUser({ name: '', email: '', password: '', role: 'client' })
+                  setNewUser({ name: '', email: '', password: '', role: 'client', phone: '' })
                 }}
+                disabled={submitting}
               >
                 Annuler
               </button>
               <button 
                 className="btn"
                 onClick={editingUser ? handleSaveEdit : handleAddUser}
-                disabled={!newUser.name || !newUser.email || (!editingUser && !newUser.password)}
+                disabled={!newUser.name || !newUser.email || !newUser.phone || (!editingUser && !newUser.password) || submitting}
               >
-                {editingUser ? 'Sauvegarder' : 'Ajouter'}
+                {submitting ? 'En cours...' : (editingUser ? 'Sauvegarder' : 'Ajouter')}
               </button>
             </div>
           </div>
@@ -488,7 +493,11 @@ export default function GererUtilisateurs() {
                     <span style={{ fontWeight: 600, color: '#1e293b' }}>#{viewingUser.id}</span>
                   </div>
                   <div>
-                    <h6 style={{ margin: '0 0 4px 0', color: '#64748b', fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date d'inscription</h6>
+                    <h6 style={{ margin: '0 0 4px 0', color: '#64748b', fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Téléphone</h6>
+                    <span style={{ fontWeight: 600, color: '#1e293b' }}>{viewingUser.phone}</span>
+                  </div>
+                  <div>
+                    <h6 style={{ margin: '0 0 4px 0', color: '#64748b', fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Inscription</h6>
                     <span style={{ fontWeight: 600, color: '#1e293b' }}>{formatDate(viewingUser.created_at)}</span>
                   </div>
                 </div>
@@ -524,6 +533,7 @@ export default function GererUtilisateurs() {
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                 <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: 600 }}>Utilisateur</th>
                 <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: 600 }}>Email</th>
+                <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: 600 }}>Téléphone</th>
                 <th style={{ textAlign: 'center', padding: '12px 8px', fontWeight: 600 }}>Rôle</th>
                 <th style={{ textAlign: 'center', padding: '12px 8px', fontWeight: 600 }}>Inscription</th>
                 <th style={{ textAlign: 'center', padding: '12px 8px', fontWeight: 600 }}>Actions</th>
@@ -543,7 +553,7 @@ export default function GererUtilisateurs() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: 'white',
-                        fontSize: '1.1em',
+                        fontSize: '1.2em',
                         fontWeight: 600
                       }}>
                         {user.name.charAt(0).toUpperCase()}
@@ -555,10 +565,10 @@ export default function GererUtilisateurs() {
                     </div>
                   </td>
                   <td style={{ padding: '16px 8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <MdEmail style={{ color: '#666', fontSize: '1.1em' }} />
-                      <span style={{ fontSize: '0.9em', color: '#666' }}>{user.email}</span>
-                    </div>
+                    <span style={{ fontSize: '0.9em' }}>{user.email}</span>
+                  </td>
+                  <td style={{ padding: '16px 8px' }}>
+                    <span style={{ fontSize: '0.9em' }}>{user.phone}</span>
                   </td>
                   <td style={{ padding: '16px 8px', textAlign: 'center' }}>
                     <div style={{
@@ -617,18 +627,23 @@ export default function GererUtilisateurs() {
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user.id)}
-                        disabled={user.role === 'admin' && stats.admins === 1}
+                        disabled={user.role === 'admin' && users.filter(u => u.role === 'admin').length === 1}
                         style={{
-                          background: user.role === 'admin' && stats.admins === 1 ? '#f9fafb' : '#fee2e2',
-                          color: user.role === 'admin' && stats.admins === 1 ? '#9ca3af' : '#dc2626',
-                          border: `1px solid ${user.role === 'admin' && stats.admins === 1 ? '#d1d5db' : '#ef4444'}`,
+                          background: user.role === 'admin' && users.filter(u => u.role === 'admin').length === 1 
+                            ? '#f3f4f6' : '#fee2e2',
+                          color: user.role === 'admin' && users.filter(u => u.role === 'admin').length === 1 
+                            ? '#9ca3af' : '#dc2626',
+                          border: '1px solid ' + (user.role === 'admin' && users.filter(u => u.role === 'admin').length === 1 
+                            ? '#d1d5db' : '#ef4444'),
                           padding: '6px',
                           borderRadius: 6,
-                          cursor: user.role === 'admin' && stats.admins === 1 ? 'not-allowed' : 'pointer',
+                          cursor: user.role === 'admin' && users.filter(u => u.role === 'admin').length === 1 
+                            ? 'not-allowed' : 'pointer',
                           display: 'flex',
                           alignItems: 'center'
                         }}
-                        title={user.role === 'admin' && stats.admins === 1 ? 'Impossible de supprimer le dernier admin' : 'Supprimer'}
+                        title={user.role === 'admin' && users.filter(u => u.role === 'admin').length === 1 
+                          ? 'Impossible de supprimer le dernier admin' : 'Supprimer'}
                       >
                         <MdDelete />
                       </button>

@@ -31,13 +31,13 @@ CREATE TABLE commandes (
     id INT PRIMARY KEY AUTO_INCREMENT,
     client_id INT NOT NULL,
     livreur_id INT,
-    restaurant_id INT NOT NULL,
+    plat_id INT NOT NULL,
     status ENUM('en_attente', 'en_cours', 'livrée', 'annulée') DEFAULT 'en_attente',
     qr_code TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (client_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (livreur_id) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
+    FOREIGN KEY (plat_id) REFERENCES plats(id) ON DELETE CASCADE
 );
 
