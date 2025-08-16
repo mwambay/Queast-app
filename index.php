@@ -44,23 +44,26 @@ $routes = [
         '/auth/login' => 'api/auth/login.php',
         '/commandes' => function() { checkAuth(); require 'api/commandes/index.php'; },
         '/livraison/valider' => function() { checkAuth(); require 'api/livraison/valider.php'; },
-        '/users' => function() { require 'api/users/create.php'; } // Ajout d'utilisateur sans auth pour les tests
+        '/users' => function() { require 'api/users/create.php'; }, // Ajout d'utilisateur sans auth pour les tests
+        '/restaurants' => function() { require 'api/restaurants/create.php'; } // Ajout de restaurant
     ],
     'GET' => [
         '/restaurants' => 'api/restaurants/index.php',
         '/restaurants/plats' => 'api/restaurants/plats.php',
+        '/restaurant' => function() { require 'api/restaurants/get_one.php'; }, // Récupération d'un restaurant spécifique
         '/commandes/client' => function() { checkAuth(); require 'api/commandes/client.php'; },
         '/commandes/livreur' => function() { checkAuth(); require 'api/commandes/livreur.php'; },
         '/commandes/historique' => function() { checkAuth(); require 'api/commandes/historique.php'; },
         '/users' => function() { require 'api/users/index.php'; }
-          
     ],
     'PUT' => [
         '/commandes/status' => function() { checkAuth(); require 'api/commandes/status.php'; },
-         '/users' => function() { require 'api/users/update.php'; } 
+        '/users' => function() { require 'api/users/update.php'; },
+        '/restaurant' => function() { require 'api/restaurants/update.php'; } // Mise à jour d'un restaurant
     ],
     'DELETE' => [
-    '/users' => function() { require 'api/users/delete.php'; } // <-- Suppression sans auth pour les tests
+        '/users' => function() { require 'api/users/delete.php'; }, // <-- Suppression sans auth pour les tests
+        '/restaurant' => function() { require 'api/restaurants/delete.php'; } // Suppression d'un restaurant
     ]
 ];
 
