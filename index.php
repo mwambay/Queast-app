@@ -45,12 +45,15 @@ $routes = [
         '/commandes' => function() { checkAuth(); require 'api/commandes/index.php'; },
         '/livraison/valider' => function() { checkAuth(); require 'api/livraison/valider.php'; },
         '/users' => function() { require 'api/users/create.php'; }, // Ajout d'utilisateur sans auth pour les tests
-        '/restaurants' => function() { require 'api/restaurants/create.php'; } // Ajout de restaurant
+        '/restaurants' => function() { require 'api/restaurants/create.php'; }, // Ajout de restaurant
+        '/menu-items' => function() { require 'api/menu_items/create.php'; } // Ajout de plat
     ],
     'GET' => [
         '/restaurants' => 'api/restaurants/index.php',
         '/restaurants/plats' => 'api/restaurants/plats.php',
         '/restaurant' => function() { require 'api/restaurants/get_one.php'; }, // Récupération d'un restaurant spécifique
+        '/menu-items' => function() { require 'api/menu_items/index.php'; }, // Tous les plats
+        '/menu-item' => function() { require 'api/menu_items/get_one.php'; }, // Un plat spécifique
         '/commandes/client' => function() { checkAuth(); require 'api/commandes/client.php'; },
         '/commandes/livreur' => function() { checkAuth(); require 'api/commandes/livreur.php'; },
         '/commandes/historique' => function() { checkAuth(); require 'api/commandes/historique.php'; },
@@ -59,11 +62,13 @@ $routes = [
     'PUT' => [
         '/commandes/status' => function() { checkAuth(); require 'api/commandes/status.php'; },
         '/users' => function() { require 'api/users/update.php'; },
-        '/restaurant' => function() { require 'api/restaurants/update.php'; } // Mise à jour d'un restaurant
+        '/restaurant' => function() { require 'api/restaurants/update.php'; }, // Mise à jour d'un restaurant
+        '/menu-item' => function() { require 'api/menu_items/update.php'; } // Mise à jour d'un plat
     ],
     'DELETE' => [
         '/users' => function() { require 'api/users/delete.php'; }, // <-- Suppression sans auth pour les tests
-        '/restaurant' => function() { require 'api/restaurants/delete.php'; } // Suppression d'un restaurant
+        '/restaurant' => function() { require 'api/restaurants/delete.php'; }, // Suppression d'un restaurant
+        '/menu-item' => function() { require 'api/menu_items/delete.php'; } // Suppression d'un plat
     ]
 ];
 
