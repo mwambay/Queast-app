@@ -3,13 +3,16 @@ require_once __DIR__ . '/lib/database.php';
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/Response.php';
 
-//header("Access-Control-Allow-Origin: http:localhost:5173");
-header("Access-Control-Allow-Origin: http:10.213.169.194:5173");
+header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
-
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // Répondre aux requêtes préflight
+    http_response_code(200);
+    exit;
+}
 // Démarrer les sessions
 session_start([
     'cookie_secure' => true,    // Activez seulement en HTTPS
@@ -49,11 +52,14 @@ $routes = [
         '/commandes/livreur' => function() { checkAuth(); require 'api/commandes/livreur.php'; },
         '/commandes/historique' => function() { checkAuth(); require 'api/commandes/historique.php'; },
         '/users' => function() { require 'api/users/index.php'; }
-        //  '/users' => function() { checkAuth(); require 'api/users/index.php'; }, 
           
     ],
     'PUT' => [
-        '/commandes/status' => function() { checkAuth(); require 'api/commandes/status.php'; }
+        '/commandes/status' => function() { checkAuth(); require 'api/commandes/status.php'; },
+         '/users' => function() { checkAuth(); require 'api/users/update.php'; } 
+    ],
+    'DELETE' => [
+    '/users' => function() { checkAuth(); require 'api/users/delete.php'; } // <-- Ajoute pour suppression
     ]
 ];
 
