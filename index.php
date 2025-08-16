@@ -3,9 +3,10 @@ require_once __DIR__ . '/lib/database.php';
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/Response.php';
 
-header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Origin: http://localhost:5175");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -15,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 // Démarrer les sessions
 session_start([
-    'cookie_secure' => true,    // Activez seulement en HTTPS
+    'cookie_secure' => false,   // false en développement HTTP, true en production HTTPS
     'cookie_httponly' => true,  // Protection contre XSS
     'use_strict_mode' => true   // Sécurité renforcée
 ]);
@@ -54,6 +55,7 @@ $routes = [
         '/restaurant' => function() { require 'api/restaurants/get_one.php'; }, // Récupération d'un restaurant spécifique
         '/menu-items' => function() { require 'api/menu_items/index.php'; }, // Tous les plats
         '/menu-item' => function() { require 'api/menu_items/get_one.php'; }, // Un plat spécifique
+        '/commandes' => function() { require 'api/commandes/all.php'; }, // Toutes les commandes (admin)
         '/commandes/client' => function() { checkAuth(); require 'api/commandes/client.php'; },
         '/commandes/livreur' => function() { checkAuth(); require 'api/commandes/livreur.php'; },
         '/commandes/historique' => function() { checkAuth(); require 'api/commandes/historique.php'; },
