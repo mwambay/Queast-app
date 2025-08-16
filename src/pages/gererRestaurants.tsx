@@ -67,6 +67,7 @@ export default function GererRestaurants() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>(mockRestaurants)
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null)
+  const [viewingRestaurant, setViewingRestaurant] = useState<Restaurant | null>(null)
   const [newRestaurant, setNewRestaurant] = useState({
     name: '',
     image: '',
@@ -253,6 +254,111 @@ export default function GererRestaurants() {
         </div>
       )}
 
+      {/* Modal d'aperçu du restaurant */}
+      {viewingRestaurant && (
+        <div className="modal-overlay" onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setViewingRestaurant(null)
+          }
+        }}>
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>Détails du restaurant</h3>
+              <button 
+                className="modal-close"
+                onClick={() => setViewingRestaurant(null)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div style={{ display: 'grid', gap: 20 }}>
+                {/* Image du restaurant */}
+                <div style={{ textAlign: 'center' }}>
+                  <img 
+                    src={viewingRestaurant.image} 
+                    alt={viewingRestaurant.name}
+                    style={{ 
+                      width: '100%', 
+                      maxWidth: 400, 
+                      height: 200, 
+                      borderRadius: 12, 
+                      objectFit: 'cover',
+                      border: '1px solid #e5e7eb'
+                    }}
+                  />
+                </div>
+                
+                {/* Informations principales */}
+                <div>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '1.4em', color: '#1f2937' }}>
+                    {viewingRestaurant.name}
+                  </h4>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#666', marginBottom: 16 }}>
+                    <MdLocationOn style={{ fontSize: '1.1em' }} />
+                    <span>{viewingRestaurant.location}</span>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <h5 style={{ margin: '0 0 8px 0', color: '#374151', fontSize: '1.1em' }}>Description</h5>
+                  <p style={{ 
+                    color: '#6b7280', 
+                    lineHeight: 1.6, 
+                    margin: 0,
+                    padding: '12px',
+                    background: '#f9fafb',
+                    borderRadius: 8,
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    {viewingRestaurant.description || 'Aucune description disponible.'}
+                  </p>
+                </div>
+
+                {/* Informations de création */}
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                  gap: 16,
+                  padding: '16px',
+                  background: '#f8fafc',
+                  borderRadius: 8,
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <div>
+                    <h6 style={{ margin: '0 0 4px 0', color: '#64748b', fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ID Restaurant</h6>
+                    <span style={{ fontWeight: 600, color: '#1e293b' }}>#{viewingRestaurant.id}</span>
+                  </div>
+                  <div>
+                    <h6 style={{ margin: '0 0 4px 0', color: '#64748b', fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date de création</h6>
+                    <span style={{ fontWeight: 600, color: '#1e293b' }}>{formatDate(viewingRestaurant.created_at)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn-secondary"
+                onClick={() => setViewingRestaurant(null)}
+              >
+                Fermer
+              </button>
+              <button 
+                className="btn"
+                onClick={() => {
+                  setViewingRestaurant(null)
+                  handleEditRestaurant(viewingRestaurant)
+                }}
+                style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+              >
+                <MdEdit /> Modifier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Liste des restaurants */}
       <div className="card">
         <div style={{ overflowX: 'auto' }}>
@@ -308,7 +414,7 @@ export default function GererRestaurants() {
                   <td style={{ padding: '16px 8px' }}>
                     <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
                       <button
-                        onClick={() => alert(`Voir les détails de ${restaurant.name}`)}
+                        onClick={() => setViewingRestaurant(restaurant)}
                         style={{
                           background: '#e0f2fe',
                           color: '#0369a1',
