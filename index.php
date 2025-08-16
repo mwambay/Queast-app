@@ -43,7 +43,8 @@ $routes = [
         '/auth/register' => 'api/auth/register.php',
         '/auth/login' => 'api/auth/login.php',
         '/commandes' => function() { checkAuth(); require 'api/commandes/index.php'; },
-        '/livraison/valider' => function() { checkAuth(); require 'api/livraison/valider.php'; }
+        '/livraison/valider' => function() { checkAuth(); require 'api/livraison/valider.php'; },
+        '/users' => function() { require 'api/users/create.php'; } // Ajout d'utilisateur sans auth pour les tests
     ],
     'GET' => [
         '/restaurants' => 'api/restaurants/index.php',
