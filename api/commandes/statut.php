@@ -22,13 +22,14 @@ if (!$currentUser) {
     Response::json(401, ['message' => 'Authentification requise']);
 }
 
-$orderId = $_GET['id'] ?? null;
 $data = json_decode(file_get_contents("php://input"), true);
 
 // Validation des entrées
-if (!$orderId || empty($data['status'])) {
+if (empty($data['order_id']) || empty($data['status'])) {
     Response::json(400, ['message' => 'ID commande et nouveau statut requis']);
 }
+
+$orderId = $data['order_id'];
 
 // Définition des permissions par rôle
 $permissions = [
@@ -62,8 +63,20 @@ if ($currentUser['role'] === 'client') {
 }
 
 // Mise à jour du statut
-$stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
-$stmt->execute([$data['status'], $orderId]);
+$updateQuery = "UPDATE orders SET status = ?";
+$updateParams = [$data['status']];
+
+// Si on assigne un livreur (statut in_delivery avec delivery_person_id)
+if (isset($data['delivery_person_id']) && !empty($data['delivery_person_id'])) {
+    $updateQuery .= ", delivery_person_id = ?";
+    $updateParams[] = $data['delivery_person_id'];
+}
+
+$updateQuery .= " WHERE id = ?";
+$updateParams[] = $orderId;
+
+$stmt = $pdo->prepare($updateQuery);
+$stmt->execute($updateParams);
 
 if ($stmt->rowCount() > 0) {
     // Enregistrement dans l'historique
@@ -75,7 +88,7 @@ if ($stmt->rowCount() > 0) {
         $orderId,
         $data['status'],
         $currentUser['id'],
-        $data['notes'] ?? null
+        $data['reason'] ?? null
     ]);
 
     // Journalisation recommandée

@@ -62,7 +62,7 @@ $routes = [
         '/users' => function() { require 'api/users/index.php'; }
     ],
     'PUT' => [
-        '/commandes/status' => function() { checkAuth(); require 'api/commandes/status.php'; },
+        '/commandes/status' => function() { checkAuth(); require 'api/commandes/statut.php'; },
         '/users' => function() { require 'api/users/update.php'; },
         '/restaurant' => function() { require 'api/restaurants/update.php'; }, // Mise à jour d'un restaurant
         '/menu-item' => function() { require 'api/menu_items/update.php'; } // Mise à jour d'un plat
