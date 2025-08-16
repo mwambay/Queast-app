@@ -31,23 +31,38 @@ try {
     $checkStmt->execute([$restaurantId]);
     
     if ($checkStmt->rowCount() === 0) {
+        $pdo->rollBack();
         Response::json(404, ['error' => 'Restaurant non trouvé']);
         exit;
     }
     
-    // Vérifier s'il y a des commandes associées à ce restaurant
-    $checkOrdersStmt = $pdo->prepare("SELECT id FROM orders WHERE restaurant_id = ? LIMIT 1");
-    $checkOrdersStmt->execute([$restaurantId]);
+    // Récupérer toutes les commandes associées à ce restaurant
+    $getOrdersStmt = $pdo->prepare("SELECT id FROM orders WHERE restaurant_id = ?");
+    $getOrdersStmt->execute([$restaurantId]);
+    $orders = $getOrdersStmt->fetchAll(PDO::FETCH_COLUMN);
     
-    if ($checkOrdersStmt->rowCount() > 0) {
-        $pdo->rollBack();
-        Response::json(409, [
-            'error' => 'Impossible de supprimer le restaurant car il existe des commandes associées'
-        ]);
-        exit;
+    // Si il y a des commandes, les supprimer en cascade
+    if (!empty($orders)) {
+        $orderIds = implode(',', array_map('intval', $orders));
+        
+        // Supprimer les évaluations liées aux commandes
+        $deleteRatingsStmt = $pdo->prepare("DELETE FROM ratings WHERE order_id IN ($orderIds)");
+        $deleteRatingsStmt->execute();
+        
+        // Supprimer l'historique des statuts des commandes
+        $deleteStatusHistoryStmt = $pdo->prepare("DELETE FROM order_status_history WHERE order_id IN ($orderIds)");
+        $deleteStatusHistoryStmt->execute();
+        
+        // Supprimer les articles des commandes
+        $deleteOrderItemsStmt = $pdo->prepare("DELETE FROM order_items WHERE order_id IN ($orderIds)");
+        $deleteOrderItemsStmt->execute();
+        
+        // Supprimer les commandes
+        $deleteOrdersStmt = $pdo->prepare("DELETE FROM orders WHERE restaurant_id = ?");
+        $deleteOrdersStmt->execute([$restaurantId]);
     }
     
-    // Supprimer d'abord les plats du menu associés
+    // Supprimer les plats du menu associés
     $deleteMenuStmt = $pdo->prepare("DELETE FROM menu_items WHERE restaurant_id = ?");
     $deleteMenuStmt->execute([$restaurantId]);
     
@@ -57,7 +72,7 @@ try {
     
     if ($success) {
         $pdo->commit();
-        Response::json(200, ['message' => 'Restaurant supprimé avec succès']);
+        Response::json(200, ['message' => 'Restaurant et toutes ses données associées supprimés avec succès']);
     } else {
         $pdo->rollBack();
         Response::json(500, ['error' => 'Erreur lors de la suppression du restaurant']);
@@ -68,13 +83,6 @@ try {
         $pdo->rollBack();
     }
     
-    // Vérifier si c'est une erreur de contrainte de clé étrangère
-    if ($e->getCode() === '23000') {
-        Response::json(409, [
-            'error' => 'Impossible de supprimer ce restaurant car il est référencé par d\'autres données'
-        ]);
-    } else {
-        error_log("Erreur DB: " . $e->getMessage());
-        Response::json(500, ['error' => 'Erreur serveur: ' . $e->getMessage()]);
-    }
+    error_log("Erreur DB lors de la suppression du restaurant $restaurantId: " . $e->getMessage());
+    Response::json(500, ['error' => 'Erreur serveur: ' . $e->getMessage()]);
 }
