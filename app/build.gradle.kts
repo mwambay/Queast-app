@@ -49,6 +49,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.foundation)
+    implementation(libs.play.services.drive)
+    implementation(libs.androidx.foundation.layout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -58,6 +61,22 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation (libs.androidx.navigation.compose)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.coil.compose)
 
+    // CameraX
+    implementation(libs.androidx.camera.core.v122)
+    implementation(libs.androidx.camera.camera2.v122)
+    implementation(libs.androidx.camera.lifecycle.v122)
+    implementation(libs.androidx.camera.view.v122)
+// ZXing pour décoder QR
+    implementation(libs.core.v352)
+// Retrofit + Gson
+    implementation(libs.retrofit.v290)
+    implementation(libs.converter.gson.v290)
+
+
+    implementation(libs.zxing.android.embedded)
 
 }
