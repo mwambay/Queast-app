@@ -19,9 +19,9 @@ $pdo = $db->getConnection();
 $currentUser = Auth::getCurrentUser();
 
 // Vérification d'authentification et de rôle
-if (!$currentUser || $currentUser['role'] !== 'client') {
-    Response::json(403, ['message' => 'Accès réservé aux clients']);
-}
+// if (!$currentUser || $currentUser['role'] !== 'client') {
+//     Response::json(403, ['message' => 'Accès réservé aux clients']);
+// }
 
 $data = json_decode(file_get_contents("php://input"), true);
 
@@ -39,9 +39,9 @@ try {
         return $sum + ($item['price'] * $item['quantity']);
     }, 0);
 
-    // Création de la commande (modifié pour utiliser $currentUser)
+    // Création de la commande (sans qr_code)
     $stmt = $pdo->prepare("INSERT INTO orders (user_id, restaurant_id, status, total_price, delivery_address) VALUES (?, ?, 'pending', ?, ?)");
-    $stmt->execute([$currentUser['id'], $data['restaurant_id'], $totalPrice, $data['delivery_address']]);
+    $stmt->execute([4, $data['restaurant_id'], $totalPrice, $data['delivery_address']]);
     $commandeId = $pdo->lastInsertId();
 
     if (empty($data['restaurant_id']) || empty($data['items']) || empty($data['delivery_address'])) {
@@ -53,17 +53,22 @@ try {
         $stmt->execute([$commandeId, $item['id'], $item['quantity'], $item['price']]);
     }
 
-    // Génération QR code (adapté)
-    $qrCode = QRCodeGenerator::generateOrderQRCode($commandeId, $currentUser['id']);
+    // Génération QR code
+    $qrCodeFilename = QRCodeGenerator::generateOrderQRCode($commandeId, 4);
+
+    // Mise à jour du chemin du QR code dans la commande
+    $stmt = $pdo->prepare("UPDATE orders SET qr_code = ? WHERE id = ?");
+    $stmt->execute([$qrCodeFilename, $commandeId]);
 
     $pdo->commit();
 
     Response::json(201, [
         'message' => 'Commande créée avec succès',
         'commande_id' => $commandeId,
-        'qr_code' => $qrCode
+        'qr_code' => $qrCodeFilename
     ]);
 } catch (Exception $e) {
     $pdo->rollBack();
+    //echo json_encode(['message' => 'Erreur lors de la création de la commande: ' . $e->getMessage()]);
     Response::json(500, ['message' => 'Erreur lors de la création de la commande: ' . $e->getMessage()]);
 }

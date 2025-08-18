@@ -1,24 +1,29 @@
 <?php
-require_once DIR . '/../lib/database.php';
-require_once DIR . '/../lib/auth.php'; // Pour gérer l'utilisateur via session
-require_once DIR . '/../lib/Response.php';
+require_once __DIR__ . '/../../lib/database.php';
+require_once __DIR__ . '/../../lib/auth.php';
+require_once __DIR__ . '/../../lib/Response.php';
+
 
 // Démarrer la session si pas déjà fait
 if (session_status() === PHP_SESSION_NONE) {
     session_start([
         'cookie_httponly' => true,
-        'use_strict_mode' => true
+        'use_strict_mode' => false
     ]);
 }
 
-// Récupérer l'utilisateur actuel via la classe Auth
+
+
 // $currentUser = Auth::getCurrentUser();
 
-// Vérification de l'authentification
-if (!$currentUser) {
-    Response::json(403, ['error' => 'Utilisateur non authentifié.']);
-    exit;
-}
+
+
+// if (!$currentUser) {
+//     Response::json(403, ['error' => 'Utilisateur non authentifié.']);
+//     exit;
+// }
+
+
 
 // Récupérer l'ID du livreur depuis la requête GET
 $deliveryPersonId = $_GET['id'] ?? null;

@@ -15,10 +15,10 @@ $pdo = $db->getConnection();
 $currentUser = Auth::getCurrentUser();  // Nouvelle méthode
 
 // Vérification basique d'authentification
-if (!$currentUser) {
-    Response::json(401, ['message' => 'Non authentifié']);
-    exit;
-}
+// if (!$currentUser) {
+//     Response::json(401, ['message' => 'Non authentifié']);
+//     exit;
+// }
 
 $clientId = $_GET['id'] ?? null;
 
@@ -27,9 +27,9 @@ if (!$clientId) {
 }
 
 // Nouvelle vérification des permissions
-if ($currentUser['id'] != $clientId && $currentUser['role'] !== 'admin') {
-    Response::json(403, ['message' => 'Accès non autorisé']);
-}
+// if ($currentUser['id'] != $clientId && $currentUser['role'] !== 'admin') {
+//     Response::json(403, ['message' => 'Accès non autorisé']);
+// }
 
 // La suite reste identique...
 $stmt = $pdo->prepare("
