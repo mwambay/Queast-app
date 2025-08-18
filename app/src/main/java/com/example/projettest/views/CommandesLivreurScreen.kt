@@ -61,28 +61,19 @@ interface DeliveryApi {
     @GET("commandes/livreur")
     suspend fun getMyOrders(): List<Order>
 
-    @POST("livraisons/valider")
-    suspend fun validateDelivery(
-        @Query("id") orderId: Int,
-        @Body request: QrRequest
-    ): ApiResponse
-}
-// ------------------- Retrofit -------------------
 
+}
 
 
 interface ApiService {
     @GET("commandes/historique")
     suspend fun getOrderHistory(@Query("id") userId: Int): List<Order>
+    @GET("commandes/annuler")
+    suspend fun cancelOrder(
+        @Query("id") orderId: Int,
+        @Query("reason") reason: String
+    ): ApiResponse
 }
-
-
-
-
-
-
-
-
 
 fun createApiService(): ApiService {
     val client = OkHttpClient.Builder()
@@ -92,7 +83,6 @@ fun createApiService(): ApiService {
             val response = chain.proceed(request)
             val body = response.body?.string()
             android.util.Log.d("API_RESPONSE", "Raw JSON: $body")
-            // Important : recréer le body car .string() le consomme
             response.newBuilder()
                 .body(okhttp3.ResponseBody.create(response.body?.contentType(), body ?: ""))
                 .build()
@@ -101,15 +91,13 @@ fun createApiService(): ApiService {
 
 
     return Retrofit.Builder()
-        .baseUrl("http://10.213.169.194:8001/")
+        .baseUrl("http://192.168.43.169:8001/")
         .client(client)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
         .create(ApiService::class.java)
 }
 
-
-// ------------------- Composable -------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderHistoryScreen(userId: Int, navController : NavController) {
@@ -118,13 +106,18 @@ fun OrderHistoryScreen(userId: Int, navController : NavController) {
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    // États pour annulation
+    var showCancelDialog by remember { mutableStateOf(false) }
+    var cancelReason by remember { mutableStateOf("") }
+    var selectedOrderId by remember { mutableStateOf<Int?>(null) }
+
     LaunchedEffect(Unit) {
         scope.launch {
             try {
                 val api = createApiService()
                 val response = api.getOrderHistory(userId)
-                println("Response: $response")  // Pour déboguer la réponse
-                orders = response  // ✅ on récupère la liste dans "data"
+                println("Response: $response")
+                orders = response
                 isLoading = false
             } catch (e: Exception) {
                 Log.e("OrderHistoryScreen", "Erreur API", e)
@@ -134,18 +127,17 @@ fun OrderHistoryScreen(userId: Int, navController : NavController) {
         }
     }
 
-
     Scaffold(
-        topBar = { TopAppBar(title = {
-            Text("Historique des commandes")
-        }
-        )
+        topBar = {
+            TopAppBar(title = { Text("Historique des commandes") })
         }
     ) { padding ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(padding), contentAlignment = Alignment.Center) {
-
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentAlignment = Alignment.Center
+        ) {
             when {
                 isLoading -> {
                     CircularProgressIndicator()
@@ -179,13 +171,72 @@ fun OrderHistoryScreen(userId: Int, navController : NavController) {
                                             Text("Scanner QR Code")
                                         }
                                     }
+
+                                    if (order.status != "delivered" && order.status != "cancelled") {
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        OutlinedButton(onClick = {
+                                            selectedOrderId = order.id
+                                            showCancelDialog = true
+                                        }) {
+                                            Text("Annuler la commande")
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-
                 }
             }
+        }
+
+        // === Boîte de dialogue pour annuler ===
+        if (showCancelDialog && selectedOrderId != null) {
+            AlertDialog(
+                onDismissRequest = { showCancelDialog = false },
+                title = { Text("Annuler la commande #$selectedOrderId") },
+                text = {
+                    Column {
+                        Text("Veuillez saisir un motif d'annulation :")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = cancelReason,
+                            onValueChange = { cancelReason = it },
+                            label = { Text("Motif") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        scope.launch {
+                            try {
+                                val api = createApiService()
+                                val response = api.cancelOrder(selectedOrderId!!, cancelReason)
+                                println("Annulation API: $response")
+                                // Rafraîchir la liste
+                                orders = orders.map { o ->
+                                    if (o.id == selectedOrderId) o.copy(status = "cancelled") else o
+                                }
+                                cancelReason = ""
+                                showCancelDialog = false
+                            } catch (e: Exception) {
+                                println("Erreur annulation: ${e.message}")
+                            }
+                        }
+                    }) {
+                        Text("Confirmer")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showCancelDialog = false
+                        cancelReason = ""
+                    }) {
+                        Text("Annuler")
+                    }
+                }
+            )
         }
     }
 }

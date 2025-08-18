@@ -1,4 +1,5 @@
-package com.example.projettest.ui
+package com.example.projettest.views
+
 
 import android.graphics.BitmapFactory
 import android.util.Base64
@@ -107,7 +108,7 @@ object UserSession {
 // API CLIENTS
 // -------------------------
 object ApiClient {
-    private const val BASE_URL = "http://10.213.169.194:8001/api/"
+    private const val BASE_URL = "http://192.168.43.169:8001/api/"
 
     // ✅ un seul OkHttpClient partagé
     private val client = okhttp3.OkHttpClient.Builder()

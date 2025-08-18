@@ -21,8 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.projettest.ui.Restaurant
-import com.example.projettest.ui.RestaurantCard
+import com.example.projettest.views.Restaurant
+import com.example.projettest.views.RestaurantCard
 
 // ---------------------- LISTE ----------------------
 

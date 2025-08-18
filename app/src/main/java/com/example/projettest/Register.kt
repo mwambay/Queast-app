@@ -72,7 +72,7 @@ class SessionCookieJar : CookieJar {
 // API CLIENT
 // -----------------------------
 object ApiClient {
-    private const val BASE_URL = "http://10.213.169.194:8001/"
+    private const val BASE_URL = "http://192.168.43.169:8001/"
 
     private val client = OkHttpClient.Builder()
         .cookieJar(SessionCookieJar())

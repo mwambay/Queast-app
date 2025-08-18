@@ -32,7 +32,7 @@ data class Commande(
 
 
 object ApiClient {
-    private const val BASE_URL = "http://10.213.169.194:8001/"
+    private const val BASE_URL = "http://192.168.43.169:8001/"
     val orderApi: CommandeApi by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
