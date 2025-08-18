@@ -54,3 +54,42 @@ button:focus-visible {
   outline: 2px solid #0b74da;
   outline-offset: 2px;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+  
+  h1 {
+    font-size: 1.5em;
+  }
+  
+  h2 {
+    font-size: 1.3em;
+  }
+  
+  h3 {
+    font-size: 1.1em;
+  }
+  
+  button {
+    padding: 0.8em 1em;
+    font-size: 0.9em;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+  
+  h1 {
+    font-size: 1.4em;
+  }
+  
+  button {
+    padding: 0.7em 0.9em;
+    font-size: 0.85em;
+  }
+}

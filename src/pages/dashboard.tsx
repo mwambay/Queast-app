@@ -6,6 +6,7 @@ import { getAllRestaurants } from '../api/Restaurants'
 import { getAllMenuItems } from '../api/Plats'
 import { getAllUsers } from '../api/Utilisateurs'
 import { getAllCommandes, type CommandeDetailed, type CommandeStatus } from '../api/Commandes'
+import { useIsMobile, useIsSmallMobile } from '../hooks/useMediaQuery'
 
 interface DashboardCardProps {
   title: string
@@ -39,6 +40,10 @@ export default function Dashboard() {
   const [recentCommandes, setRecentCommandes] = useState<CommandeDetailed[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Hooks responsive
+  const isMobile = useIsMobile()
+  const isSmallMobile = useIsSmallMobile()
 
   useEffect(() => {
     loadData()
@@ -148,14 +153,18 @@ export default function Dashboard() {
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
         gap: 16, 
         marginBottom: 32 
-      }}>
+      }} className="grid-responsive">
         <DashboardCard title="Restaurants" value={stats.restaurants} color="#3ba0ff" icon={<MdRestaurant />} />
         <DashboardCard title="Plats disponibles" value={stats.plats} color="#3ba0ff" icon={<MdRestaurantMenu />} />
         <DashboardCard title="Commandes totales" value={stats.commandes} color="#3ba0ff" icon={<MdShoppingCart />} />
         <DashboardCard title="Utilisateurs" value={stats.utilisateurs} color="#3ba0ff" icon={<MdPeople />} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', 
+        gap: 24 
+      }} className="grid-responsive">
         {/* Commandes récentes */}
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -169,13 +178,15 @@ export default function Dashboard() {
               <div key={commande.id} style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center',
+                alignItems: isSmallMobile ? 'flex-start' : 'center',
+                flexDirection: isSmallMobile ? 'column' : 'row',
                 padding: 12,
                 background: '#f8fafc',
                 borderRadius: 8,
-                border: '1px solid #e2e8f0'
+                border: '1px solid #e2e8f0',
+                gap: isSmallMobile ? 8 : 0
               }}>
-                <div>
+                <div style={{ flex: 1 }}>
                   <strong>#{commande.id} • {commande.client_name}</strong>
                   <div style={{ fontSize: '0.9em', color: '#666' }}>{commande.restaurant_name}</div>
                 </div>

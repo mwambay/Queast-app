@@ -3,6 +3,7 @@ import { MdRefresh, MdAssignment, MdVisibility, MdEdit, MdQrCode, MdDeliveryDini
 import { useState, useEffect } from 'react'
 import { getAllCommandes, updateCommandeStatus, type CommandeDetailed, type CommandeStatus } from '../api/Commandes'
 import { getAllUsers } from '../api/Utilisateurs'
+import { useIsMobile } from '../hooks/useMediaQuery'
 
 // Types de statut mappés pour l'interface utilisateur  
 type UIStatus = 'pending' | 'preparing' | 'ready' | 'in_delivery' | 'delivered' | 'cancelled'
@@ -33,6 +34,9 @@ export default function SuiviCommandes() {
   const [viewingCommande, setViewingCommande] = useState<CommandeDetailed | null>(null)
   const [assigningCommande, setAssigningCommande] = useState<CommandeDetailed | null>(null)
   const [selectedLivreur, setSelectedLivreur] = useState<string>('')
+  
+  // Hook responsive
+  const isMobile = useIsMobile()
 
   // Charger les données au montage du composant
   useEffect(() => {
@@ -220,7 +224,7 @@ export default function SuiviCommandes() {
       <div className="card" style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           <label style={{ fontWeight: 500 }}>Filtrer par statut :</label>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} className={isMobile ? 'filter-buttons' : ''}>
             <button
               onClick={() => setSelectedStatus('all')}
               style={{
@@ -562,8 +566,8 @@ export default function SuiviCommandes() {
       {/* Liste des commandes */}
       <div className="card">
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }} className={isMobile ? 'table-mobile-cards' : ''}>
+            <thead style={{ display: isMobile ? 'none' : 'table-header-group' }}>
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                 <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: 600 }}>Commande</th>
                 <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: 600 }}>Client</th>
@@ -577,7 +581,7 @@ export default function SuiviCommandes() {
             <tbody>
               {filteredCommandes.map(commande => (
                 <tr key={commande.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                  <td style={{ padding: '16px 8px' }}>
+                  <td style={{ padding: '16px 8px' }} data-label="Commande">
                     <div>
                       <div style={{ fontWeight: 600, marginBottom: 4 }}>#{commande.id}</div>
                       <div style={{ fontSize: '0.85em', color: '#666', fontFamily: 'monospace' }}>
@@ -585,7 +589,7 @@ export default function SuiviCommandes() {
                       </div>
                     </div>
                   </td>
-                  <td style={{ padding: '16px 8px' }}>
+                  <td style={{ padding: '16px 8px' }} data-label="Client">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <MdPerson style={{ color: '#666', fontSize: '1.1em' }} />
                       <span style={{ fontSize: '0.9em' }}>
@@ -593,7 +597,7 @@ export default function SuiviCommandes() {
                       </span>
                     </div>
                   </td>
-                  <td style={{ padding: '16px 8px' }}>
+                  <td style={{ padding: '16px 8px' }} data-label="Restaurant">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <MdRestaurant style={{ color: '#666', fontSize: '1.1em' }} />
                       <span style={{ fontSize: '0.9em' }}>
@@ -601,7 +605,7 @@ export default function SuiviCommandes() {
                       </span>
                     </div>
                   </td>
-                  <td style={{ padding: '16px 8px' }}>
+                  <td style={{ padding: '16px 8px' }} data-label="Livreur">
                     {commande.delivery_person_name ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <MdDeliveryDining style={{ color: '#059669', fontSize: '1.1em' }} />
@@ -616,7 +620,7 @@ export default function SuiviCommandes() {
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: '16px 8px', textAlign: 'center' }}>
+                  <td style={{ padding: '16px 8px', textAlign: 'center' }} data-label="Statut">
                     <select
                       value={commande.status}
                       onChange={(e) => handleUpdateStatus(commande.id, e.target.value as CommandeStatus)}
@@ -640,11 +644,11 @@ export default function SuiviCommandes() {
                       <option value="cancelled">Annulée</option>
                     </select>
                   </td>
-                  <td style={{ padding: '16px 8px', textAlign: 'center', fontSize: '0.9em', color: '#666' }}>
+                  <td style={{ padding: '16px 8px', textAlign: 'center', fontSize: '0.9em', color: '#666' }} data-label="Créée le">
                     {formatDate(commande.created_at)}
                   </td>
-                  <td style={{ padding: '16px 8px' }}>
-                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                  <td style={{ padding: '16px 8px' }} data-label="Actions">
+                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }} className={isMobile ? 'actions-mobile' : ''}>
                       <button
                         onClick={() => setViewingCommande(commande)}
                         style={{
