@@ -55,10 +55,10 @@ $routes = [
         '/restaurant' => function() { require 'api/restaurants/get_one.php'; }, // Récupération d'un restaurant spécifique
         '/menu-items' => function() { require 'api/menu_items/index.php'; }, // Tous les plats
         '/menu-item' => function() { require 'api/menu_items/get_one.php'; }, // Un plat spécifique
-        '/commandes' => function() { require 'api/commandes/all.php'; }, // Toutes les commandes (admin)
+        '/commandes' => function() { require 'api/commandes/all.php'; }, // Toutes les commandes 
         '/commandes/client' => function() { checkAuth(); require 'api/commandes/client.php'; },
         '/commandes/livreur' => function() { checkAuth(); require 'api/commandes/livreur.php'; },
-        '/commandes/historique' => function() { checkAuth(); require 'api/commandes/historique.php'; },
+        '/commandes/historique' => function() {  require 'api/commandes/historique.php'; },
         '/users' => function() { require 'api/users/index.php'; }
     ],
     'PUT' => [

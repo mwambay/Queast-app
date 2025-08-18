@@ -99,6 +99,11 @@ try {
 
 } catch (PDOException $e) {
     error_log("Erreur création utilisateur: " . $e->getMessage());
+    echo json_encode([
+        'message' => 'Erreur lors de la création de l\'utilisateur',
+        'error' => $e->getMessage(),
+        'error_code' => 'user_creation_failed'
+    ]);
     Response::json(500, [
         'message' => 'Erreur lors de la création',
         'error' => $e->getMessage(),
