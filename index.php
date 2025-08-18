@@ -47,7 +47,8 @@ $routes = [
         '/livraison/valider' => function() { require 'api/livraison/valider.php'; },
         '/users' => function() { require 'api/users/create.php'; }, // Ajout d'utilisateur sans auth pour les tests
         '/restaurants' => function() { require 'api/restaurants/create.php'; }, // Ajout de restaurant
-        '/menu-items' => function() { require 'api/menu_items/create.php'; } // Ajout de plat
+        '/menu-items' => function() { require 'api/menu_items/create.php'; }, // Ajout de plat
+        '/upload_image' => function() { require 'api/restaurants/upload_image.php'; } // Upload d'image
     ],
     'GET' => [
         '/restaurants' => 'api/restaurants/index.php',
