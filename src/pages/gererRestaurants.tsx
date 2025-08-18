@@ -33,6 +33,8 @@ export default function GererRestaurants() {
       if (error) {
         setError(error)
       } else if (data) {
+              console.log('Restaurants:', data) // <-- Ajoutez ce log
+
         setRestaurants(data)
       }
     } catch (err) {
@@ -407,7 +409,6 @@ export default function GererRestaurants() {
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                 <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: 600 }}>Restaurant</th>
                 <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: 600 }}>Localisation</th>
-                <th style={{ textAlign: 'center', padding: '12px 8px', fontWeight: 600 }}>Créé le</th>
                 <th style={{ textAlign: 'center', padding: '12px 8px', fontWeight: 600 }}>Actions</th>
               </tr>
             </thead>
@@ -448,9 +449,7 @@ export default function GererRestaurants() {
                       <span style={{ fontSize: '0.9em', color: '#666' }}>{restaurant.address}</span>
                     </div>
                   </td>
-                  <td style={{ padding: '16px 8px', textAlign: 'center', fontSize: '0.9em', color: '#666' }}>
-                    {formatDate(restaurant.created_at)}
-                  </td>
+   
                   <td style={{ padding: '16px 8px' }}>
                     <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
                       <button

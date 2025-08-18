@@ -154,53 +154,38 @@ export async function withApiState<T>(
   }
 }
 
-// API wrapper avec gestion d'erreur intégrée
 export const MenuAPI = {
-  /**
-   * Récupère tous les plats avec gestion d'erreur
-   */
+
   async getAll() {
     return withApiState(() => getAllMenuItems())
   },
 
-  /**
-   * Récupère les plats d'un restaurant avec gestion d'erreur
-   */
+
   async getByRestaurant(restaurantId: number) {
     return withApiState(() => getMenuItemsByRestaurant(restaurantId))
   },
 
-  /**
-   * Récupère un plat par ID avec gestion d'erreur
-   */
+
   async getById(id: number) {
     return withApiState(() => getMenuItemById(id))
   },
 
-  /**
-   * Crée un plat avec gestion d'erreur
-   */
+
   async create(data: CreateMenuItemData) {
     return withApiState(() => createMenuItem(data))
   },
 
-  /**
-   * Met à jour un plat avec gestion d'erreur
-   */
+
   async update(id: number, data: UpdateMenuItemData) {
     return withApiState(() => updateMenuItem(id, data))
   },
 
-  /**
-   * Supprime un plat avec gestion d'erreur
-   */
+
   async delete(id: number) {
     return withApiState(() => deleteMenuItem(id))
   },
 
-  /**
-   * Récupère la liste des restaurants avec gestion d'erreur
-   */
+
   async getRestaurants() {
     return withApiState(() => getRestaurants())
   }

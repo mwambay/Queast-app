@@ -212,7 +212,7 @@ export default function GererMenus() {
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>Prix (€) *</label>
+                  <label style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>Prix (FC) *</label>
                   <input
                     className="input"
                     type="number"
@@ -312,7 +312,7 @@ export default function GererMenus() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#059669', fontWeight: 600 }}>
                       <MdAttachMoney style={{ fontSize: '1.1em' }} />
-                      <span>{viewingPlat.price.toFixed(2)} €</span>
+                      <span>{viewingPlat.price.toFixed(2)} FC</span>
                     </div>
                   </div>
                 </div>
@@ -391,7 +391,7 @@ export default function GererMenus() {
                   <td style={{ padding: '16px 8px', textAlign: 'center' }}>
                     <div style={{ background: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: 6, fontSize: '0.9em', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       <MdAttachMoney style={{ fontSize: '1em' }} />
-                      {plat.price.toFixed(2)} €
+                      {plat.price.toFixed(2)} FC
                     </div>
                   </td>
                   <td style={{ padding: '16px 8px', textAlign: 'center' }}>

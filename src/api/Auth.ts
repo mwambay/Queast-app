@@ -31,7 +31,6 @@ export interface RegisterRequest {
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   try {
     const response = await post<LoginResponse>('/auth/login', credentials)
-    console.log('Connexion réussie:', response)
     return response
   } catch (error) {
     console.error('Erreur lors de la connexion:', error)
@@ -58,14 +57,9 @@ export async function register(userData: RegisterRequest): Promise<any> {
  */
 export async function logout(): Promise<void> {
   try {
-    // Note: Le backend n'a pas d'endpoint logout, on peut juste nettoyer le localStorage
     localStorage.removeItem('queast_admin_token')
     localStorage.removeItem('queast_admin_user')
-    
-    // Optionnel: appeler le backend pour invalider la session
-    // await post('/auth/logout')
-    
-    console.log('Déconnexion réussie')
+
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error)
     throw error
@@ -142,32 +136,22 @@ export async function withAuthState<T>(
   }
 }
 
-// API wrapper pour faciliter l'utilisation
 export const AuthAPI = {
-  /**
-   * Connexion avec gestion d'erreur
-   */
+
   async login(credentials: LoginRequest) {
     return withAuthState(() => login(credentials))
   },
 
-  /**
-   * Inscription avec gestion d'erreur
-   */
+
   async register(userData: RegisterRequest) {
     return withAuthState(() => register(userData))
   },
 
-  /**
-   * Déconnexion avec gestion d'erreur
-   */
+
   async logout() {
     return withAuthState(() => logout())
   },
 
-  /**
-   * Vérifications d'état
-   */
   isAuthenticated,
   getCurrentUser,
   saveSession

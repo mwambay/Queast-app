@@ -109,7 +109,7 @@ export default function Dashboard() {
 
   const formatAmount = (val: unknown) => {
     const n = Number(val)
-    return Number.isFinite(n) ? `${n.toFixed(2)} €` : '—'
+    return Number.isFinite(n) ? `${n.toFixed(2)} FC` : '—'
   }
 
   if (loading) {
@@ -160,9 +160,9 @@ export default function Dashboard() {
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ marginTop: 0 }}>Commandes récentes</h2>
-            <button className="btn" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* <button className="btn" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <MdRefresh /> Rafraîchir
-            </button>
+            </button> */}
           </div>
           <div style={{ display: 'grid', gap: 12 }}>
             {recentCommandes.map((commande) => (
